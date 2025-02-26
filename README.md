@@ -1,2 +1,2 @@
-# alfe
+# Alfe AI
 Primary FOSS Release
