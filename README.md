@@ -1,2 +1,2 @@
 # Alfe AI
-Primary FOSS Release
+Primary Alfe AI FOSS Release / Aggregator Repo
