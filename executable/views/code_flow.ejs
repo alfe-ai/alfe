@@ -1,0 +1,26 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Code Flow Analysis</title>
+    <link rel="stylesheet" href="/CSS/style.css">
+</head>
+<body>
+    <h1>Code Flow Analysis</h1>
+    <table border="1">
+        <thead>
+            <tr>
+                <th>Method(s)</th>
+                <th>Path</th>
+            </tr>
+        </thead>
+        <tbody>
+            <% routes.forEach(function(route){ %>
+                <tr>
+                    <td><%= route.method %></td>
+                    <td><%= route.path %></td>
+                </tr>
+            <% }); %>
+        </tbody>
+    </table>
+</body>
+</html>
