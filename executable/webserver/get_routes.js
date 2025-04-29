@@ -218,6 +218,28 @@ function setupGetRoutes(deps) {
         const gitCommits = getGitCommitGraph(repoCfg.gitRepoLocalPath);
         res.json({ commits: gitCommits });
     });
+
+    /* ---------- /:repoName/git_branches ---------- */
+    app.get("/:repoName/git_branches", (req, res) => {
+        const { repoName } = req.params;
+        const repoCfg = loadSingleRepoConfig(repoName);
+        if (!repoCfg) {
+            return res.status(400).json({ error: `Repo '${repoName}' not found.` });
+        }
+        const { gitRepoLocalPath } = repoCfg;
+        let branchData = [];
+        try {
+            const branchRaw = execSync("git branch --format='%(refname:short)'", { cwd: gitRepoLocalPath })
+                .toString()
+                .trim()
+                .split("\n");
+            branchData = branchRaw.map(b => b.replace(/^\*\s*/, ""));
+        } catch (err) {
+            console.error("[ERROR] getBranches =>", err);
+            return res.status(500).json({ error: "Failed to list branches." });
+        }
+        return res.json({ branches: branchData });
+    });
 }
 
 module.exports = { setupGetRoutes };
