@@ -12,6 +12,7 @@ const { OpenAI } = require('openai');
 const app = express();
 
 const PROJECT_ROOT = path.resolve(__dirname, "..");
+const DEFAULT_AIMODEL = "o3";
 
 /**
  * Global Agent Instructions
@@ -623,8 +624,8 @@ app.get("/:repoName/chat", (req, res) => {
         attachedFiles: [],
         chatHistory: [],
         aiProvider: "openai",
-        aiModel: "o1",
-        pushAfterCommit: false
+        aiModel: DEFAULT_AIMODEL,
+        pushAfterCommit: true
     };
     saveRepoJson(repoName, dataObj);
 
@@ -655,7 +656,7 @@ app.get("/:repoName/chat/:chatNumber", (req, res) => {
 
     // default model
     if (!chatData.aiModel) {
-        chatData.aiModel = "o1";
+        chatData.aiModel = DEFAULT_AIMODEL;
     } else {
         chatData.aiModel = chatData.aiModel.toLowerCase();
     }
@@ -823,7 +824,7 @@ app.post(
             }
 
             chatData.aiModel = (
-                chatData.aiModel || "o1"
+                chatData.aiModel || DEFAULT_AIMODEL
             ).toLowerCase();
 
             chatData.aiProvider = chatData.aiProvider || "openai";
@@ -922,10 +923,10 @@ app.post(
             if (commitSummary) {
                 try {
                     // Set git commit username and email
-                    execSync('git config user.name "whimsy"', {
+                    execSync('git config user.name "YOURNAME"', {
                         cwd: gitRepoLocalPath,
                     });
-                    execSync('git config user.email "whimsy@sylph.box"', {
+                    execSync('git config user.email "YOURNAME@YOURDOMAIN.tld"', {
                         cwd: gitRepoLocalPath,
                     });
 
