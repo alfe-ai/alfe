@@ -1,5 +1,3 @@
-// whimsical_puppet/public/JS/chat.js
-
 // Handles UI logic: expand/collapse sections, tabs, directory tree toggling,
 // attached-file highlighting, 'git update/pull' action upon chat submit, and chat form AJAX submission with spinner and timer.
 
