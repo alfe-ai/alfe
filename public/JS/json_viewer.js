@@ -1,5 +1,3 @@
-// whimsical_puppet/public/JS/json_viewer.js
-
 function renderJSON(key, value, container) {
     if (typeof value === 'object' && value !== null) {
         var keyElement = document.createElement('div');
