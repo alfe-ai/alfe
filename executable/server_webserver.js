@@ -650,6 +650,26 @@ app.get("/:repoName/git_log", (req, res) => {
     res.json({ commits: gitCommits });
 });
 
+/* ------------- REGISTER POST ROUTES (new refactor) ------------- */
+const { setupPostRoutes } = require("./webserver/post_routes");
+setupPostRoutes({
+    app,
+    upload,
+    cloneRepository,
+    loadRepoConfig,
+    saveRepoConfig,
+    loadRepoJson,
+    saveRepoJson,
+    loadSingleRepoConfig,
+    saveGlobalInstructions,
+    gitUpdatePull,
+    getOpenAIClient,
+    fetchAndSortModels,
+    AIModels,
+    DEFAULT_AIMODEL,
+    PROJECT_ROOT,
+});
+
 /**
  * Start server
  */
