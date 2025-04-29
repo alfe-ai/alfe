@@ -74,7 +74,7 @@ found 0 vulnerabilities
 
 7. Add a git repository to work on with http://localhost:3001/repositories/add , paste in the SSH url for the git repository to work on.
 
-8. In new chats, you can copy Agent Instructions from here: https://github.com/alfe-ai/alfe-agent_instructions (This will soon be integrated with the app)<!--, I implemented this in an older branch, multiple agent support.)-->
+<!-- 8. In new chats, you can copy Agent Instructions from here: https://github.com/alfe-ai/alfe-agent_instructions (This will soon be integrated with the app)--><!--, I implemented this in an older branch, multiple agent support.)-->
 
 ### Related Repositories:  
 Alfe AI / Agent Instructions: https://github.com/alfe-ai/alfe-agent_instructions
