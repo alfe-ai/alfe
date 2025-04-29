@@ -3,6 +3,10 @@
 ## Alfe AI Version 1: Sterling  
 <!-- #### beta-0.43.0 -->
 
+### FOSS AI Software Development Platform
+
+![image](https://github.com/user-attachments/assets/62754c8a-d4a4-441f-9050-aeed4157926a)
+
 #### System Requirements:
 Linux, Debian, Ubuntu, and similar.
 
