@@ -12,6 +12,7 @@ const { OpenAI } = require('openai');
 const app = express();
 
 const PROJECT_ROOT = path.resolve(__dirname, "..");
+const DEFAULT_AIMODEL = "o3";
 
 /**
  * Global Agent Instructions
@@ -623,7 +624,7 @@ app.get("/:repoName/chat", (req, res) => {
         attachedFiles: [],
         chatHistory: [],
         aiProvider: "openai",
-        aiModel: "o3",
+        aiModel: DEFAULT_AIMODEL,
         pushAfterCommit: false
     };
     saveRepoJson(repoName, dataObj);
@@ -655,7 +656,7 @@ app.get("/:repoName/chat/:chatNumber", (req, res) => {
 
     // default model
     if (!chatData.aiModel) {
-        chatData.aiModel = "o3";
+        chatData.aiModel = DEFAULT_AIMODEL;
     } else {
         chatData.aiModel = chatData.aiModel.toLowerCase();
     }
@@ -823,7 +824,7 @@ app.post(
             }
 
             chatData.aiModel = (
-                chatData.aiModel || "o3"
+                chatData.aiModel || DEFAULT_AIMODEL
             ).toLowerCase();
 
             chatData.aiProvider = chatData.aiProvider || "openai";
