@@ -625,7 +625,7 @@ app.get("/:repoName/chat", (req, res) => {
         chatHistory: [],
         aiProvider: "openai",
         aiModel: DEFAULT_AIMODEL,
-        pushAfterCommit: false
+        pushAfterCommit: true
     };
     saveRepoJson(repoName, dataObj);
 
