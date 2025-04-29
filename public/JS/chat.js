@@ -759,4 +759,105 @@ document.addEventListener('DOMContentLoaded', () => {
             displayCommit(root, 0);
         });
     }
+
+    // ============ Switch Branch Modal ============
+    const switchBranchButton = document.getElementById('switchBranchButton');
+    const switchBranchModal = document.getElementById('switchBranchModal');
+    const closeSwitchBranch = document.querySelector('.close-switch-branch');
+    const branchSelect = document.getElementById('branchSelect');
+    const createNewBranchCheckbox = document.getElementById('createNewBranchCheckbox');
+    const newBranchNameField = document.getElementById('newBranchName');
+    const switchBranchSubmitButton = document.getElementById('switchBranchSubmitButton');
+    const switchBranchMessage = document.getElementById('switchBranchMessage');
+
+    if (switchBranchButton && switchBranchModal && closeSwitchBranch) {
+        switchBranchButton.addEventListener('click', () => {
+            switchBranchModal.style.display = 'block';
+
+            // Clear previous data
+            branchSelect.innerHTML = '';
+            newBranchNameField.value = '';
+            newBranchNameField.style.display = 'none';
+            createNewBranchCheckbox.checked = false;
+            switchBranchMessage.textContent = '';
+
+            // Fetch branches
+            const pathParts = window.location.pathname.split('/');
+            const repoName = pathParts[1] || "WhimsicalPuppet";
+            fetch(`/${repoName}/git_branches`)
+                .then(res => res.json())
+                .then(data => {
+                    if (data.error) {
+                        console.error("[DEBUG] Failed to fetch branches:", data.error);
+                    } else {
+                        data.branches.forEach(branch => {
+                            const opt = document.createElement('option');
+                            opt.value = branch;
+                            opt.textContent = branch;
+                            branchSelect.appendChild(opt);
+                        });
+                    }
+                })
+                .catch(e => console.error("[DEBUG] Branch fetch error:", e));
+        });
+
+        closeSwitchBranch.addEventListener('click', () => {
+            switchBranchModal.style.display = 'none';
+        });
+
+        window.addEventListener('click', (e) => {
+            if (e.target === switchBranchModal) {
+                switchBranchModal.style.display = 'none';
+            }
+        });
+
+        createNewBranchCheckbox.addEventListener('change', () => {
+            if (createNewBranchCheckbox.checked) {
+                newBranchNameField.style.display = 'inline-block';
+            } else {
+                newBranchNameField.style.display = 'none';
+            }
+        });
+
+        if (switchBranchSubmitButton) {
+            switchBranchSubmitButton.addEventListener('click', () => {
+                const pathParts = window.location.pathname.split('/');
+                const repoName = pathParts[1] || "WhimsicalPuppet";
+
+                const createNew = createNewBranchCheckbox.checked;
+                const selectedBranch = branchSelect.value;
+                const newBranchName = newBranchNameField.value.trim();
+
+                const bodyData = {
+                    createNew,
+                    branchName: selectedBranch,
+                    newBranchName: newBranchName
+                };
+
+                fetch(`/${repoName}/git_switch_branch`, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify(bodyData)
+                })
+                    .then(res => res.json())
+                    .then(data => {
+                        if (data.error) {
+                            switchBranchMessage.style.color = 'red';
+                            switchBranchMessage.textContent = data.error;
+                        } else {
+                            switchBranchMessage.style.color = 'green';
+                            switchBranchMessage.textContent = 'Branch switched successfully.';
+                            setTimeout(() => {
+                                window.location.reload();
+                            }, 1000);
+                        }
+                    })
+                    .catch(e => {
+                        console.error("[DEBUG] Branch switch error:", e);
+                        switchBranchMessage.style.color = 'red';
+                        switchBranchMessage.textContent = 'Error switching branch.';
+                    });
+            });
+        }
+    }
 });

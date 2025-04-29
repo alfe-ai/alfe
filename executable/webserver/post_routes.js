@@ -239,7 +239,7 @@ function setupPostRoutes(deps) {
 
     /* ---------- helper parsers ---------- */
     function parseAssistantReplyForFiles(assistantReply) {
-        const fileRegex = /===== Start of file: (.+?) =====\\s*([\\s\\S]*?)===== End of file: \\1 =====/g;
+        const fileRegex = /===== Start of file: (.+?) =====\s*([\s\S]*?)===== End of file: \1 =====/g;
         const files = [];
         let match;
         while ((match = fileRegex.exec(assistantReply)) !== null) {
@@ -249,7 +249,7 @@ function setupPostRoutes(deps) {
     }
 
     function parseAssistantReplyForCommitSummary(assistantReply) {
-        const commitSummaryRegex = /A\\.\\s*Commit Summary\\s*([\\s\\S]*?)B\\.\\s*Files/;
+        const commitSummaryRegex = /A\.\s*Commit Summary\s*([\s\S]*?)B\.\s*Files/;
         const match = assistantReply.match(commitSummaryRegex);
         return match && match[1] ? match[1].trim() : null;
     }
@@ -338,6 +338,41 @@ function setupPostRoutes(deps) {
         dataObj[chatNumber] = chatData;
         saveRepoJson(repoName, dataObj);
         res.redirect(`/${repoName}/chat/${chatNumber}`);
+    });
+
+    /* ---------- /:repoName/git_switch_branch ---------- */
+    app.post("/:repoName/git_switch_branch", (req, res) => {
+        const { repoName } = req.params;
+        const { createNew, branchName, newBranchName } = req.body || {};
+        const repoCfg = loadSingleRepoConfig(repoName);
+        if (!repoCfg) {
+            return res.status(400).json({ error: `Repo '${repoName}' not found.` });
+        }
+        const { gitRepoLocalPath } = repoCfg;
+
+        try {
+            if (createNew === true || createNew === "true") {
+                if (!newBranchName) {
+                    return res.status(400).json({ error: "No new branch name provided." });
+                }
+                execSync(`git checkout -b "${newBranchName}"`, { cwd: gitRepoLocalPath, stdio: "pipe" });
+                repoCfg.gitBranch = newBranchName;
+            } else {
+                if (!branchName) {
+                    return res.status(400).json({ error: "No branch name provided." });
+                }
+                execSync(`git checkout "${branchName}"`, { cwd: gitRepoLocalPath, stdio: "pipe" });
+                repoCfg.gitBranch = branchName;
+            }
+            const allConfig = loadRepoConfig() || {};
+            allConfig[repoName] = repoCfg;
+            saveRepoConfig(allConfig);
+
+            return res.json({ success: true });
+        } catch (err) {
+            console.error("[ERROR] gitSwitchBranch =>", err);
+            return res.status(500).json({ error: "Failed to switch branch." });
+        }
     });
 }
 

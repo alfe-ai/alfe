@@ -38,7 +38,6 @@
         </p>
     </center>
 
-    <h2>Project Directory</h2>
     <button id="gitUpdatePullButton">git update/pull</button>
     <div id="gitRevisionInfo" style="margin-top: 5px; font-size: 0.9em; color: #777;"></div>
 
@@ -46,7 +45,9 @@
          style="margin-top: 1em; font-size: 0.9em; color: #66FF99;">
         <p><strong>Current Revision:</strong> <%= gitRevision %></p>
         <p><strong>Commit Timestamp:</strong> <%= gitTimestamp %></p>
-        <p><strong>Branch:</strong> <%= gitBranchName %></p>
+        <p><strong>Branch:</strong> <%= gitBranchName %>
+            <button id="switchBranchButton">Switch Branch</button>
+        </p>
         <button id="gitLogButton">git log</button>
     </div>
 
@@ -377,6 +378,27 @@
             <h2>Git Status</h2>
             <div class="git-status-output">
                 <pre><%= chatData.gitStatus %></pre>
+            </div>
+        </div>
+    </div>
+
+    <!-- Switch Branch Modal -->
+    <div id="switchBranchModal" class="modal">
+        <div class="modal-content">
+            <span class="close-switch-branch">&times;</span>
+            <h2>Switch Branch</h2>
+            <div id="branchSelectContainer">
+                <label for="branchSelect">Select existing branch:</label>
+                <select id="branchSelect"></select>
+                <br><br>
+                <label>
+                    <input type="checkbox" id="createNewBranchCheckbox"> Create new branch
+                </label>
+                <br>
+                <input type="text" id="newBranchName" placeholder="Enter new branch name" style="display:none;">
+                <br><br>
+                <button id="switchBranchSubmitButton">Switch</button>
+                <div id="switchBranchMessage" style="margin-top: 1em; font-size: 0.9em;"></div>
             </div>
         </div>
     </div>
