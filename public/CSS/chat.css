@@ -1,0 +1,356 @@
+/* Basic reset */
+* {
+    box-sizing: border-box;
+}
+
+body {
+    margin: 0;
+    padding: 0;
+    font-family: Arial, sans-serif;
+}
+
+/* Dark-themed sidebar, fixed at left */
+#sidebar {
+    position: fixed;
+    top: 0;
+    left: 0;
+    bottom: 0;
+    width: 280px; /* widen if needed */
+    background-color: #1c1c1c;
+    color: #ccc;
+    padding: 20px;
+    box-sizing: border-box;
+    z-index: 999;
+    overflow-y: auto; /* scroll if directory is tall */
+}
+
+#content {
+    margin-left: 280px; /* offset for sidebar width */
+    position: relative;
+    z-index: 1;
+    padding: 20px;
+}
+
+/* Sidebar headings */
+#sidebar h1, #sidebar h2, #sidebar p.breadcrumb {
+    margin: 0 0 10px 0;
+    color: #fff;
+}
+#sidebar a {
+    color: #69b2ff;
+    text-decoration: none;
+}
+#sidebar a:hover {
+    text-decoration: underline;
+}
+
+/* git status button */
+#gitStatusButton {
+    display: block;
+    width: 100%;
+    padding: 8px 0;
+    font-size: 1em;
+    cursor: pointer;
+    border: none;
+    border-radius: 5px;
+    background-color: #305080;
+    color: #fff;
+    margin-bottom: 20px;
+    text-align: center;
+}
+#gitStatusButton:hover {
+    background-color: #406090;
+}
+
+/* Directory tree base */
+.tree {
+    margin: 0;
+    padding-left: 0;
+    list-style-type: none;
+    font-size: 0.95em;
+    line-height: 1.4em;
+}
+.tree li {
+    margin: 4px 0;
+}
+
+/* Folders */
+.folder > .tree-label {
+    font-weight: bold;
+    cursor: pointer;
+    position: relative;
+    padding-left: 20px; /* space for arrow */
+}
+.folder > .tree-label::before {
+    content: "▶";
+    position: absolute;
+    left: 0;
+    transition: transform 0.2s;
+    font-size: 0.9em;
+}
+
+/* collapsed => hide child ul */
+.folder.collapsed > ul {
+    display: none;
+}
+/* expanded => show child ul, rotate arrow */
+.folder.expanded > .tree-label::before {
+    transform: rotate(90deg);
+}
+.folder.expanded > ul {
+    display: block;
+    margin-left: 10px;
+    border-left: 1px dashed #666;
+    padding-left: 8px;
+}
+
+/* Files */
+.file-item {
+    cursor: pointer;
+    padding-left: 28px; /* line up with folder label arrow */
+    color: #ccc;
+    transition: background-color 0.3s, color 0.3s;
+}
+.file-item:hover {
+    background-color: #333;
+    color: #e2e2e2;
+}
+.file-item.selected-file {
+    background-color: #005e7a;
+    color: #fff;
+    font-weight: bold;
+}
+
+/* Success message (green box) */
+.success-message {
+    background-color: #2c8533;
+    color: #fff;
+    padding: 10px;
+    margin-bottom: 20px;
+    border-radius: 5px;
+}
+
+/* Collapsible Sections (Metadata, Agent Instr, etc.) */
+.collapsible-section {
+    border: 1px solid #ccc;
+    margin-bottom: 10px;
+    background-color: #f9f9f9;
+}
+.collapsible-header {
+    background-color: #eee;
+    padding: 10px;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+}
+.collapsible-header h3 {
+    margin: 0;
+    flex-grow: 1;
+}
+.collapsible-header .triangle {
+    width: 0;
+    height: 0;
+    border-left: 6px solid transparent;
+    border-right: 6px solid transparent;
+    border-top: 6px solid #333;
+    margin-right: 10px;
+    transition: transform 0.2s;
+}
+.collapsible-section.expanded .collapsible-header .triangle {
+    transform: rotate(180deg);
+}
+.collapsible-content {
+    display: none;
+    padding: 10px;
+}
+.collapsible-section.expanded .collapsible-content {
+    display: block;
+}
+
+/* Attached Files */
+.attached-files-section ul {
+    list-style-type: none;
+    padding-left: 0;
+}
+.attached-files-section li {
+    margin-bottom: 5px;
+}
+.remove-file-button {
+    margin-left: 10px;
+}
+
+/* Form Buttons */
+.form-buttons {
+    margin-top: 10px;
+}
+.form-buttons button {
+    padding: 8px 16px;
+    font-size: 1em;
+    cursor: pointer;
+    border: none;
+    border-radius: 4px;
+    background-color: #3498db;
+    color: #fff;
+    transition: background-color 0.3s;
+}
+.form-buttons button:hover {
+    background-color: #2980b9;
+}
+
+/* Tabs */
+.tabs {
+    margin-top: 20px;
+}
+.tab-buttons {
+    display: flex;
+    border-bottom: 1px solid #ccc;
+}
+.tab-buttons .tablink {
+    background-color: #666;
+    color: #fff;
+    border: none;
+    padding: 10px 15px;
+    cursor: pointer;
+    transition: background-color 0.3s;
+}
+.tab-buttons .tablink.active {
+    background-color: #999;
+}
+.tab-buttons .tablink:hover {
+    background-color: #555;
+}
+.tab-content {
+    display: none;
+    padding: 10px 0;
+}
+.tab-content.active {
+    display: block;
+}
+
+/* Chat messages */
+.collapsible-message {
+    border: 1px solid #ccc;
+    border-radius: 5px;
+    margin-bottom: 10px;
+}
+.collapsible-message .message-header {
+    background-color: #4f4f4f;
+    color: #fff;
+    padding: 5px;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+}
+.collapsible-message .message-header .triangle {
+    width: 0;
+    height: 0;
+    border-left: 6px solid transparent;
+    border-right: 6px solid transparent;
+    border-top: 6px solid #fff;
+    margin-right: 10px;
+    transition: transform 0.2s;
+}
+.collapsible-message.expanded .message-header .triangle {
+    transform: rotate(180deg);
+}
+.collapsible-message.collapsed .message-content {
+    display: none;
+}
+.collapsible-message .message-content pre {
+    background-color: #333;
+    color: #ddd;
+    padding: 10px;
+    border-radius: 5px;
+    margin: 0;
+    overflow-x: auto;
+}
+
+/* Chat input (dark) */
+#chatInput {
+    width: 100%;
+    min-height: 120px;
+    resize: vertical;
+    background-color: #222;
+    color: #eee;
+    padding: 10px;
+    border: 1px solid #555;
+    border-radius: 4px;
+    margin-bottom: 10px;
+    font-size: 1em;
+    line-height: 1.4;
+}
+
+/* Old Spinner approach (#loadingIndicator) appended by chat_ajax.js */
+#loadingIndicator {
+    display: none; /* hidden by default */
+    align-items: center;
+    color: #fff;
+    margin-top: 10px;
+    font-size: 16px;
+    font-style: italic;
+}
+#spinner {
+    width: 24px;
+    height: 24px;
+    border: 4px solid #bbb;
+    border-top: 4px solid #2c8533;
+    border-radius: 50%;
+    animation: spin 1s linear infinite;
+    margin-right: 10px;
+}
+@keyframes spin {
+    0% {
+        transform: rotate(0deg);
+    }
+    100% {
+        transform: rotate(360deg);
+    }
+}
+
+/* Execution time text in form */
+#executionTimeText {
+    display: none;
+    color: #fff;
+    margin-top: 10px;
+    font-size: 14px;
+}
+
+/* Git Status Modal */
+.modal {
+    display: none;
+    position: fixed;
+    z-index: 100;
+    left: 0;
+    top: 0;
+    width: 100%;
+    height: 100%;
+    overflow: auto;
+    background-color: rgba(0,0,0,0.7);
+}
+.modal-content {
+    background-color: #2f2f2f;
+    color: #fff;
+    margin: 5% auto;
+    padding: 20px;
+    width: 80%;
+    max-width: 800px;
+    border: 1px solid #888;
+}
+.close {
+    color: #aaa;
+    float: right;
+    font-size: 28px;
+    font-weight: bold;
+    cursor: pointer;
+}
+.close:hover {
+    color: #ddd;
+}
+.git-status-output {
+    font-family: monospace;
+    white-space: pre-wrap;
+    background-color: #444;
+    border-radius: 3px;
+    padding: 10px;
+    color: #eee;
+}
