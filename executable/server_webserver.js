@@ -733,8 +733,11 @@ app.post("/:repoName/chat/:chatNumber", upload.array("imageFiles"), async (req, 
         }
         if (commitSummary) {
             try {
-                execSync('git config user.name "YOURNAME"', { cwd: gitRepoLocalPath });
-                execSync('git config user.email "YOURNAME@YOURDOMAIN.tld"', { cwd: gitRepoLocalPath });
+                // Use environment variables or fall back to defaults
+                const commitUserName = process.env.GIT_COMMIT_USER_NAME || "YOURNAME";
+                const commitUserEmail = process.env.GIT_COMMIT_USER_EMAIL || "YOURNAME@YOURDOMAIN.tld";
+                execSync(`git config user.name "${commitUserName}"`, { cwd: gitRepoLocalPath });
+                execSync(`git config user.email "${commitUserEmail}"`, { cwd: gitRepoLocalPath });
                 execSync("git add .", { cwd: gitRepoLocalPath });
                 execSync(`git commit -m "${commitSummary.replace(/"/g, '\\"')}"`, {
                     cwd: gitRepoLocalPath,
@@ -994,3 +997,4 @@ const port = process.env.SERVER_PORT || 3000;
 http.createServer(app).listen(port, () => {
     console.log(`[DEBUG] Server running => http://localhost:${port}`);
 });
+
