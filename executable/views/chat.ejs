@@ -1,1 +1,76 @@
-... [file content with added Switch Branch button and modal] ...
+<!DOCTYPE html>
+<html>
+<head>
+  <title>Alfe AI Chat</title>
+  <style>
+    /* Basic styles for the switch branch modal */
+    #switchBranchModal {
+      display: none;
+      position: fixed;
+      z-index: 9999;
+      left: 0;
+      top: 0;
+      width: 100%;
+      height: 100%;
+      overflow: auto;
+      background-color: rgba(0,0,0,0.5);
+    }
+    #switchBranchModalContent {
+      background-color: #fefefe;
+      margin: 10% auto;
+      padding: 20px;
+      width: 300px;
+      border-radius: 4px;
+    }
+  </style>
+</head>
+<body>
+  <div>
+    <h1>Alfe AI Chat</h1>
+
+    <input type="hidden" id="repoNameForBranches" value="<%= repoName %>" />
+
+    <div id="gitMetaData">
+      <p>Current Branch: <%= gitMeta.branchName %></p>
+      <p>Git Revision: <%= gitMeta.rev %></p>
+      <p>Last Commit Date: <%= gitMeta.dateStr %></p>
+      <button id="switchBranchBtn">Switch Branch</button>
+    </div>
+
+    <div id="logSection">
+      <h2>Git Log</h2>
+      <% if (commits && commits.length > 0) { %>
+        <ul>
+          <% commits.forEach(function(commit) { %>
+            <li><%= commit %></li>
+          <% }); %>
+        </ul>
+      <% } else { %>
+        <p>No commits found.</p>
+      <% } %>
+    </div>
+
+    <!-- Switch Branch Modal -->
+    <div id="switchBranchModal">
+      <div id="switchBranchModalContent">
+        <h3>Switch Branch</h3>
+        <label for="branchSelect">Choose a branch:</label>
+        <select id="branchSelect"></select>
+
+        <div>
+          <input type="checkbox" id="createNewBranchCheckbox" />
+          <label for="createNewBranchCheckbox">Create new branch</label>
+        </div>
+        <div id="newBranchNameField" style="display: none;">
+          <label for="newBranchName">New Branch Name:</label>
+          <input type="text" id="newBranchName" />
+        </div>
+
+        <button id="confirmSwitchBranchBtn">Confirm</button>
+      </div>
+    </div>
+  </div>
+
+  <script src="/JS/chat.js"></script>
+</body>
+</html>
