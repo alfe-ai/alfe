@@ -1,0 +1,88 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Chats for Repository: <%= gitRepoNameCLI %></title>
+    <style>
+        /* Adjust as desired or use a separate CSS file */
+        body {
+            font-family: Arial, sans-serif;
+            margin: 0;
+            padding: 20px;
+        }
+        h1, h2 {
+            margin-bottom: 0.5em;
+        }
+        .chat-list li {
+            margin-bottom: 1em;
+        }
+        .actions {
+            display: inline-block;
+            margin-left: 10px;
+        }
+        .actions form {
+            display: inline;
+        }
+        .actions button {
+            margin-left: 5px;
+        }
+    </style>
+</head>
+<body>
+<h1>Chats for Repository: <%= gitRepoNameCLI %></h1>
+
+<!-- Controls for creating new/add chat -->
+<button onclick="location.href='/<%= gitRepoNameCLI %>/chat'">New Chat</button>
+<button onclick="location.href='/<%= gitRepoNameCLI %>/add_chat'">Add Chat</button>
+
+<h2>Active Chats:</h2>
+<ul class="chat-list">
+    <% if (activeChats.length === 0) { %>
+        <li>No active chats available.</li>
+    <% } else { %>
+        <% activeChats.forEach(function(chat) { %>
+            <li>
+                Chat <%= chat.number %> - Status: <%= chat.status %>
+                <div class="actions">
+                    <!-- "Enter Chat" link/button -->
+                    <button onclick="window.location.href='/<%= gitRepoNameCLI %>/chat/<%= chat.number %>'">
+                        Enter Chat
+                    </button>
+
+                    <!-- Deactivate form -->
+                    <form action="/<%= gitRepoNameCLI %>/chat/<%= chat.number %>/deactivate"
+                          method="POST"
+                          onsubmit="return confirm('Are you sure you want to deactivate this chat?');">
+                        <button type="submit">Deactivate</button>
+                    </form>
+                </div>
+            </li>
+        <% }); %>
+    <% } %>
+</ul>
+
+<h2>Inactive Chats:</h2>
+<ul class="chat-list">
+    <% if (inactiveChats.length === 0) { %>
+        <li>No inactive chats available.</li>
+    <% } else { %>
+        <% inactiveChats.forEach(function(chat) { %>
+            <li>
+                Chat <%= chat.number %> - Status: <%= chat.status %>
+                <div class="actions">
+                    <!-- "Enter Chat" link/button still works if you want to view an inactive chat detail -->
+                    <button onclick="window.location.href='/<%= gitRepoNameCLI %>/chat/<%= chat.number %>'">
+                        Enter Chat
+                    </button>
+                </div>
+            </li>
+        <% }); %>
+    <% } %>
+</ul>
+
+<hr>
+<footer>
+    <a href="/">Home</a> | <a href="/repositories">Repositories</a>
+</footer>
+</body>
+</html>

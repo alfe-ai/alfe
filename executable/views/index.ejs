@@ -1,0 +1,92 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Alfe - Home</title>
+    <link
+      id="favicon"
+      rel="icon"
+      type="image/svg+xml"
+      href="data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 64 64'><polygon points='32,4 4,60 60,60' fill='black' /></svg>"
+    >
+    <link rel="stylesheet" href="/styles.css">
+    <style>
+        body {
+          font-family: 'Roboto', sans-serif;
+          margin: 0;
+          background-color: #f5f5f5;
+          padding: 40px;
+        }
+        h1 {
+          font-weight: 500;
+        }
+        ul {
+          list-style-type: none;
+          padding-left: 0;
+        }
+        li {
+          margin: 10px 0;
+        }
+        a {
+          color: #3498db;
+          text-decoration: none;
+          font-size: 1.2em;
+        }
+        a:hover {
+          text-decoration: underline;
+        }
+
+        footer {
+          font-size: 14px;
+        }
+    </style>
+</head>
+<body>
+<h1>Alfe</h1>
+<p><a href="/global_instructions">Global Agent Instructions</a></p>
+<hr>
+
+<h2>Available Repositories:</h2>
+<ul>
+    <% repoNames.forEach(function(repo) { %>
+        <li>
+            <a href="/<%= repo %>"><%= repo %></a>
+        </li>
+    <% }); %>
+</ul>
+
+<h2>Active Chats:</h2>
+<!-- TODO: The active chats listing is incomplete in code, but left as is. -->
+
+<br/>
+<hr>
+<br/>
+<footer>
+    <a href="/repositories">View All Repositories</a>
+</footer>
+
+<!-- Button to swap the favicon to a rotating play triangle -->
+<button id="startButton">Start</button>
+<script>
+  const rotatingPlaySVG =
+    "data:image/svg+xml;utf8," +
+    "<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 64 64'>" +
+      "<polygon points='10,4 58,32 10,60' fill='black' />" +
+      "<path d='M32,4 A28,28 0 0 1 32,60' stroke='black' stroke-width='4' fill='none'>" +
+        "<animateTransform " +
+          "attributeName='transform' " +
+          "type='rotate' " +
+          "from='0 32 32' " +
+          "to='360 32 32' " +
+          "dur='1s' " +
+          "repeatCount='indefinite' />" +
+      "</path>" +
+    "</svg>";
+
+  document.getElementById("startButton").addEventListener("click", function() {
+    document.getElementById("favicon").href = rotatingPlaySVG;
+  });
+</script>
+
+</body>
+</html>

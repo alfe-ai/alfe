@@ -1,0 +1,17 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>JSON Viewer</title>
+    <link rel="stylesheet" href="/CSS/json_viewer.css">
+</head>
+<body>
+    <h1>JSON Viewer</h1>
+    <div id="jsonContainer"></div>
+
+    <script>
+        var jsonData = <%- JSON.stringify(messages) %>;
+    </script>
+    <script src="/JS/json_viewer.js"></script>
+</body>
+</html>

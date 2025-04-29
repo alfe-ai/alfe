@@ -1,0 +1,26 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Add New Repository</title>
+    <link rel="stylesheet" href="/styles.css">
+</head>
+<body>
+    <h1>Add New Repository</h1>
+
+    <form action="/repositories/add" method="POST">
+        <label for="repoName">Repository Name:</label><br>
+        <input type="text" id="repoName" name="repoName" required><br><br>
+
+        <label for="gitRepoURL">SSH Git Repo URL:</label><br>
+        <input type="text" id="gitRepoURL" name="gitRepoURL" required><br><br>
+
+        <button type="submit">Add Repository</button>
+    </form>
+
+    <!-- Link back to Repositories -->
+    <footer>
+        <a href="/repositories">Back to Repositories</a>
+    </footer>
+</body>
+</html>
