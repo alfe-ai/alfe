@@ -44,9 +44,9 @@ ssh-rsa AAAAB3NzaC1yc2EAAAADAQABAAACAQD3iRx+BSrGFVvO7oYjElBvybBg2bRyCZqPkES4CVAy
 user@t03012025:~/git$ 
 ```
 
-1.1. Copy the entire contents of your '.pub' file (Beginning with 'ssh-rsa') to a new SSH key within GitHub:
-https://github.com/settings/ssh/new
-https://github.com/settings/keys
+1.1. Copy the entire contents of your '.pub' file (Beginning with 'ssh-rsa') to a new SSH key within GitHub:  
+https://github.com/settings/ssh/new  
+https://github.com/settings/keys  
 
 2. Ensure you have `nodejs` and `npm` installed on your system. On Debian, you can install them with:
 ```
@@ -74,7 +74,7 @@ found 0 vulnerabilities
 
 7. Add a git repository to work on with http://localhost:3001/repositories/add , paste in the SSH url for the git repository to work on.
 
-8. In new chats, you can copy Agent Instructions from here: https://github.com/alfe-ai/alfe-agent_instructions (This will soon be integrated with the app)<!--, I implemented this in an older branch, multiple agent support.)-->
+<!-- 8. In new chats, you can copy Agent Instructions from here: https://github.com/alfe-ai/alfe-agent_instructions (This will soon be integrated with the app)--><!--, I implemented this in an older branch, multiple agent support.)-->
 
 ### Related Repositories:  
 Alfe AI / Agent Instructions: https://github.com/alfe-ai/alfe-agent_instructions
