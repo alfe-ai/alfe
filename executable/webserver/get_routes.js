@@ -1,239 +1,223 @@
 /**
- * Root
+ * setupGetRoutes attaches all GET (and some auxiliary) routes to the Express
+ * application.  Everything the routes need is injected through the `deps`
+ * object so the module has zero hidden dependencies.
+ *
+ * @param {object} deps – injected dependencies
  */
-const {loadRepoConfig, loadSingleRepoConfig} = require("../../server_defs");
-const {analyzeProject} = require("../directory_analyzer");
-const {execSync} = require("child_process");
-const {analyzeCodeFlow} = require("../code_flow_analyzer");
+function setupGetRoutes(deps) {
+    const {
+        app,
+        loadRepoConfig,
+        loadRepoJson,
+        saveRepoJson,
+        loadSingleRepoConfig,
+        loadGlobalInstructions,
+        getActiveInactiveChats,
+        generateFullDirectoryTree,
+        getGitMetaData,
+        getGitCommits,
+        getGitCommitGraph,
+        convertGitUrlToHttps,
+        analyzeProject,
+        analyzeCodeFlow,
+        AIModels,
+        DEFAULT_AIMODEL,
+        execSync,
+    } = deps;
 
-app.get("/", (req, res) => {
-    res.redirect("/repositories");
-});
+    /* ---------- Root ---------- */
+    app.get("/", (_req, res) => res.redirect("/repositories"));
 
-/**
- * Global instructions
- */
-app.get("/global_instructions", (req, res) => {
-    const currentGlobal = loadGlobalInstructions();
-    res.render("global_instructions", { currentGlobal });
-});
+    /* ---------- Global instructions ---------- */
+    app.get("/global_instructions", (_req, res) => {
+        const currentGlobal = loadGlobalInstructions();
+        res.render("global_instructions", { currentGlobal });
+    });
 
-/**
- * Repos listing
- */
-app.get("/repositories", (req, res) => {
-    const repoConfig = loadRepoConfig();
-    const repoList = [];
-    if (repoConfig) {
-        for (const repoName in repoConfig) {
-            if (repoConfig.hasOwnProperty(repoName)) {
-                repoList.push({
-                    name: repoName,
-                    gitRepoLocalPath: repoConfig[repoName].gitRepoLocalPath,
-                    gitRepoURL: repoConfig[repoName].gitRepoURL || "#",
-                });
+    /* ---------- Repositories listing ---------- */
+    app.get("/repositories", (_req, res) => {
+        const repoConfig = loadRepoConfig();
+        const repoList = [];
+        if (repoConfig) {
+            for (const repoName in repoConfig) {
+                if (Object.prototype.hasOwnProperty.call(repoConfig, repoName)) {
+                    repoList.push({
+                        name: repoName,
+                        gitRepoLocalPath: repoConfig[repoName].gitRepoLocalPath,
+                        gitRepoURL: repoConfig[repoName].gitRepoURL || "#",
+                    });
+                }
             }
         }
-    }
-    res.render("repositories", { repos: repoList });
-});
-
-app.get("/repositories/add", (req, res) => {
-    res.render("add_repository");
-});
-
-/**
- * Chats
- */
-app.get("/:repoName", (req, res) => {
-    res.redirect(`/${req.params.repoName}/chats`);
-});
-app.get("/:repoName/chats", (req, res) => {
-    const repoName = req.params.repoName;
-    const dataObj = loadRepoJson(repoName);
-    const { activeChats, inactiveChats } = getActiveInactiveChats(dataObj);
-
-    res.render("chats", {
-        gitRepoNameCLI: repoName,
-        activeChats,
-        inactiveChats,
+        res.render("repositories", { repos: repoList });
     });
-});
-app.get("/:repoName/chat", (req, res) => {
-    const repoName = req.params.repoName;
-    const dataObj = loadRepoJson(repoName);
-    let maxChatNumber = 0;
-    for (const key of Object.keys(dataObj)) {
-        const chatNumber = parseInt(key, 10);
-        if (!isNaN(chatNumber) && chatNumber > maxChatNumber) {
-            maxChatNumber = chatNumber;
+
+    app.get("/repositories/add", (_req, res) => {
+        res.render("add_repository");
+    });
+
+    /* ---------- Repo helper redirects ---------- */
+    app.get("/:repoName", (req, res) => {
+        res.redirect(`/${req.params.repoName}/chats`);
+    });
+
+    /* ---------- Chats list ---------- */
+    app.get("/:repoName/chats", (req, res) => {
+        const repoName = req.params.repoName;
+        const dataObj = loadRepoJson(repoName);
+        const { activeChats, inactiveChats } = getActiveInactiveChats(dataObj);
+
+        res.render("chats", {
+            gitRepoNameCLI: repoName,
+            activeChats,
+            inactiveChats,
+        });
+    });
+
+    /* ---------- Create new chat ---------- */
+    app.get("/:repoName/chat", (req, res) => {
+        const repoName = req.params.repoName;
+        const dataObj = loadRepoJson(repoName);
+
+        /* find highest existing chat number */
+        let maxChatNumber = 0;
+        for (const key of Object.keys(dataObj)) {
+            const n = parseInt(key, 10);
+            if (!isNaN(n) && n > maxChatNumber) maxChatNumber = n;
         }
-    }
-    const newChatNumber = maxChatNumber + 1;
-    const defaultGlobals = loadGlobalInstructions();
+        const newChatNumber = maxChatNumber + 1;
 
-    dataObj[newChatNumber] = {
-        status: "ACTIVE",
-        agentInstructions: defaultGlobals,
-        attachedFiles: [],
-        chatHistory: [],
-        aiProvider: "openai",
-        aiModel: DEFAULT_AIMODEL,
-        pushAfterCommit: true,
-    };
-    saveRepoJson(repoName, dataObj);
-    res.redirect(`/${repoName}/chat/${newChatNumber}`);
-});
-
-/**
- * Show a specific chat
- */
-app.get("/:repoName/chat/:chatNumber", (req, res) => {
-    const { repoName, chatNumber } = req.params;
-    const dataObj = loadRepoJson(repoName);
-    const chatData = dataObj[chatNumber];
-    if (!chatData) {
-        return res.status(404).send("Chat not found.");
-    }
-
-    const repoCfg = loadSingleRepoConfig(repoName);
-    if (!repoCfg) {
-        return res
-            .status(400)
-            .send(`[ERROR] Repo config not found: '${repoName}'`);
-    }
-
-    // Ensure defaults
-    chatData.aiModel = (chatData.aiModel || DEFAULT_AIMODEL).toLowerCase();
-    chatData.aiProvider = chatData.aiProvider || "openai";
-
-    const {
-        gitRepoLocalPath,
-        gitBranch,
-        openAIAccount,
-        gitRepoURL,
-    } = repoCfg;
-    const attachedFiles = chatData.attachedFiles || [];
-
-    const directoryTreeHTML = generateFullDirectoryTree(
-        gitRepoLocalPath,
-        repoName,
-        attachedFiles
-    );
-    const meta = getGitMetaData(gitRepoLocalPath);
-    const gitCommits = getGitCommits(gitRepoLocalPath);
-    const gitCommitGraph = getGitCommitGraph(gitRepoLocalPath);
-
-    const githubURL = convertGitUrlToHttps(gitRepoURL);
-    const chatGPTURL = chatData.chatURL || "";
-    const status = chatData.status || "ACTIVE";
-
-    const { analyzeProject } = require("./directory_analyzer");
-    const directoryAnalysisText = analyzeProject(gitRepoLocalPath, {
-        plainText: true,
+        dataObj[newChatNumber] = {
+            status: "ACTIVE",
+            agentInstructions: loadGlobalInstructions(),
+            attachedFiles: [],
+            chatHistory: [],
+            aiProvider: "openai",
+            aiModel: DEFAULT_AIMODEL,
+            pushAfterCommit: true,
+        };
+        saveRepoJson(repoName, dataObj);
+        res.redirect(`/${repoName}/chat/${newChatNumber}`);
     });
 
-    function getSystemInformation() {
-        let output = "";
-        try {
-            execSync("command -v neofetch");
-            output = execSync(
-                "neofetch --config none --ascii off --color_blocks off --stdout"
-            ).toString();
-        } catch (error) {
-            output = "[neofetch not available]";
+    /* ---------- Show specific chat ---------- */
+    app.get("/:repoName/chat/:chatNumber", (req, res) => {
+        const { repoName, chatNumber } = req.params;
+        const dataObj = loadRepoJson(repoName);
+        const chatData = dataObj[chatNumber];
+        if (!chatData) return res.status(404).send("Chat not found.");
+
+        const repoCfg = loadSingleRepoConfig(repoName);
+        if (!repoCfg) return res.status(400).send(`[ERROR] Repo config not found: '${repoName}'`);
+
+        /* defaults */
+        chatData.aiModel = (chatData.aiModel || DEFAULT_AIMODEL).toLowerCase();
+        chatData.aiProvider = chatData.aiProvider || "openai";
+
+        const {
+            gitRepoLocalPath,
+            gitBranch,
+            openAIAccount,
+            gitRepoURL,
+        } = repoCfg;
+
+        const attachedFiles = chatData.attachedFiles || [];
+        const directoryTreeHTML = generateFullDirectoryTree(gitRepoLocalPath, repoName, attachedFiles);
+        const meta            = getGitMetaData(gitRepoLocalPath);
+        const gitCommits      = getGitCommits(gitRepoLocalPath);
+        const gitCommitGraph  = getGitCommitGraph(gitRepoLocalPath);
+
+        const githubURL       = convertGitUrlToHttps(gitRepoURL);
+        const chatGPTURL      = chatData.chatURL || "";
+        const status          = chatData.status || "ACTIVE";
+
+        const directoryAnalysisText = analyzeProject(gitRepoLocalPath, { plainText: true });
+
+        /* basic system info via neofetch (optional) */
+        function getSystemInformation() {
+            let output = "";
+            try {
+                execSync("command -v neofetch");
+                output = execSync("neofetch --config none --ascii off --color_blocks off --stdout").toString();
+            } catch {
+                output = "[neofetch not available]";
+            }
+            return output;
         }
-        return output;
-    }
-    const systemInformationText = getSystemInformation();
 
-    const providerKey = chatData.aiProvider.toLowerCase();
-    const aiModelsForProvider = AIModels[providerKey] || [];
+        const aiModelsForProvider = AIModels[chatData.aiProvider.toLowerCase()] || [];
 
-    res.render("chat", {
-        gitRepoNameCLI: repoName,
-        chatNumber,
-        directoryTreeHTML,
-        chatData,
-        AIModels: aiModelsForProvider,
-        aiModel: chatData.aiModel,
-        status,
-        gitRepoLocalPath,
-        githubURL,
-        gitBranch,
-        openAIAccount,
-        chatGPTURL,
-        gitRevision: meta.rev,
-        gitTimestamp: meta.dateStr,
-        gitBranchName: meta.branchName,
-        gitCommits,
-        gitCommitGraph,
-        directoryAnalysisText,
-        systemInformationText,
-        environment: res.locals.environment,
+        res.render("chat", {
+            gitRepoNameCLI : repoName,
+            chatNumber,
+            directoryTreeHTML,
+            chatData,
+            AIModels        : aiModelsForProvider,
+            aiModel         : chatData.aiModel,
+            status,
+            gitRepoLocalPath,
+            githubURL,
+            gitBranch,
+            openAIAccount,
+            chatGPTURL,
+            gitRevision     : meta.rev,
+            gitTimestamp    : meta.dateStr,
+            gitBranchName   : meta.branchName,
+            gitCommits,
+            gitCommitGraph,
+            directoryAnalysisText,
+            systemInformationText : getSystemInformation(),
+            environment     : res.locals.environment,
+        });
     });
-});
 
-/**
- * Code flow
- */
-app.get("/code_flow", (req, res) => {
-    const routes = analyzeCodeFlow(app);
-    res.render("code_flow", { routes });
-});
+    /* ---------- Code-flow visualiser ---------- */
+    app.get("/code_flow", (_req, res) => {
+        const routes = analyzeCodeFlow(app);
+        res.render("code_flow", { routes });
+    });
 
-/**
- * Raw messages
- */
-app.get("/:repoName/chat/:chatNumber/raw/:messageIndex", (req, res) => {
-    const { repoName, chatNumber, messageIndex } = req.params;
-    const dataObj = loadRepoJson(repoName);
-    const chatData = dataObj[chatNumber];
-    if (!chatData) {
-        return res.status(404).send("Chat not found.");
-    }
-    if (!chatData.chatHistory || !chatData.chatHistory[messageIndex]) {
-        return res.status(404).send("Message not found.");
-    }
-    const msg = chatData.chatHistory[messageIndex];
-    if (msg.role !== "user" || !msg.messagesSent) {
-        return res
-            .status(404)
-            .send("No raw messages available for this message.");
-    }
-    res.setHeader("Content-Type", "application/json");
-    res.send(JSON.stringify(msg.messagesSent, null, 2));
-});
-app.get("/:repoName/chat/:chatNumber/json_viewer/:messageIndex", (req, res) => {
-    const { repoName, chatNumber, messageIndex } = req.params;
-    const dataObj = loadRepoJson(repoName);
-    const chatData = dataObj[chatNumber];
-    if (!chatData) {
-        return res.status(404).send("Chat not found.");
-    }
-    if (!chatData.chatHistory || !chatData.chatHistory[messageIndex]) {
-        return res.status(404).send("Message not found.");
-    }
-    const msg = chatData.chatHistory[messageIndex];
-    if (msg.role !== "user" || !msg.messagesSent) {
-        return res
-            .status(404)
-            .send("No raw messages available for this message.");
-    }
-    res.render("json_viewer", { messages: msg.messagesSent });
-});
+    /* ---------- Raw / JSON viewer helpers ---------- */
+    app.get("/:repoName/chat/:chatNumber/raw/:idx", (req, res) => {
+        const { repoName, chatNumber, idx } = req.params;
+        const dataObj = loadRepoJson(repoName);
+        const chatData = dataObj[chatNumber];
+        if (!chatData) return res.status(404).send("Chat not found.");
+        if (!chatData.chatHistory || !chatData.chatHistory[idx])
+            return res.status(404).send("Message not found.");
 
-/**
- * Return git commit graph in JSON
- */
-app.get("/:repoName/git_log", (req, res) => {
-    const { repoName } = req.params;
-    const repoCfg = loadSingleRepoConfig(repoName);
-    if (!repoCfg) {
-        return res
-            .status(400)
-            .json({ error: `Repository '${repoName}' not found.` });
-    }
-    const gitCommits = getGitCommitGraph(repoCfg.gitRepoLocalPath);
-    res.json({ commits: gitCommits });
-});
+        const msg = chatData.chatHistory[idx];
+        if (msg.role !== "user" || !msg.messagesSent)
+            return res.status(404).send("No raw messages available for this message.");
+
+        res.type("application/json").send(JSON.stringify(msg.messagesSent, null, 2));
+    });
+
+    app.get("/:repoName/chat/:chatNumber/json_viewer/:idx", (req, res) => {
+        const { repoName, chatNumber, idx } = req.params;
+        const dataObj = loadRepoJson(repoName);
+        const chatData = dataObj[chatNumber];
+        if (!chatData) return res.status(404).send("Chat not found.");
+        if (!chatData.chatHistory || !chatData.chatHistory[idx])
+            return res.status(404).send("Message not found.");
+
+        const msg = chatData.chatHistory[idx];
+        if (msg.role !== "user" || !msg.messagesSent)
+            return res.status(404).send("No raw messages available for this message.");
+
+        res.render("json_viewer", { messages: msg.messagesSent });
+    });
+
+    /* ---------- Git log (JSON) ---------- */
+    app.get("/:repoName/git_log", (req, res) => {
+        const { repoName } = req.params;
+        const repoCfg = loadSingleRepoConfig(repoName);
+        if (!repoCfg) return res.status(400).json({ error: `Repository '${repoName}' not found.` });
+
+        const gitCommits = getGitCommitGraph(repoCfg.gitRepoLocalPath);
+        res.json({ commits: gitCommits });
+    });
+}
+
+module.exports = { setupGetRoutes };
