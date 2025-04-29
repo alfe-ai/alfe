@@ -923,10 +923,10 @@ app.post(
             if (commitSummary) {
                 try {
                     // Set git commit username and email
-                    execSync('git config user.name "whimsy"', {
+                    execSync('git config user.name "YOURNAME"', {
                         cwd: gitRepoLocalPath,
                     });
-                    execSync('git config user.email "whimsy@sylph.box"', {
+                    execSync('git config user.email "YOURNAME@YOURDOMAIN.tld"', {
                         cwd: gitRepoLocalPath,
                     });
 

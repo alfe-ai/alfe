@@ -52,7 +52,7 @@ sudo apt-get install nodejs npm
 
 3. Run `npm install` from the project root dir, you should see something similar to:
 ```
-sylphie@x1(f73c49f, 0 changes):~/.alfe/git/alfe-ai-org/alfe-dev$ npm install
+user@t03012025(f73c49f, 0 changes):~/.alfe/git/alfe-ai-org/alfe-dev$ npm install
 
 up to date, audited 410 packages in 2s
 
