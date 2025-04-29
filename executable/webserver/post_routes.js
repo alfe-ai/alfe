@@ -352,16 +352,16 @@ function setupPostRoutes(deps) {
 
         try {
             if (createNew === true || createNew === "true") {
-                if (!newBranchName) {
-                    return res.status(400).json({ error: "No new branch name provided." });
+                if (!newBranchName || !/^[\w.-]+$/.test(newBranchName)) {
+                    return res.status(400).json({ error: "Invalid or missing new branch name." });
                 }
-                execSync(`git checkout -b "${newBranchName}"`, { cwd: gitRepoLocalPath, stdio: "pipe" });
+                execSync("git", ["checkout", "-b", newBranchName], { cwd: gitRepoLocalPath, stdio: "pipe" });
                 repoCfg.gitBranch = newBranchName;
             } else {
-                if (!branchName) {
-                    return res.status(400).json({ error: "No branch name provided." });
+                if (!branchName || !/^[\w.-]+$/.test(branchName)) {
+                    return res.status(400).json({ error: "Invalid or missing branch name." });
                 }
-                execSync(`git checkout "${branchName}"`, { cwd: gitRepoLocalPath, stdio: "pipe" });
+                execSync("git", ["checkout", branchName], { cwd: gitRepoLocalPath, stdio: "pipe" });
                 repoCfg.gitBranch = branchName;
             }
             const allConfig = loadRepoConfig() || {};
