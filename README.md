@@ -1,7 +1,7 @@
 # Alfe AI  
 
 ## Alfe AI Version 1: Sterling  
-#### beta-0.43.0
+<!-- #### beta-0.43.0 -->
 
 #### System Requirements:
 Linux, Debian, Ubuntu, and similar.
