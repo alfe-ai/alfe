@@ -945,7 +945,7 @@ app.post(
                         execSync("git push", { cwd: gitRepoLocalPath });
                         console.log("[DEBUG] Git push successful.");
                     } else {
-                        console.log("pushAfterCommit is false. Skipping git push.");
+                        console.log("[DEBUG] pushAfterCommit is false. Skipping git push.");
                     }
                 } catch (err) {
                     console.error("[ERROR] Git commit/push failed:", err);
