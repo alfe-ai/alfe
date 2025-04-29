@@ -1,7 +1,7 @@
 {
   "name": "alfe-ai",
-  "version": "0.04",
-  "description": "An application for managing chats with AI models.",
+  "version": "0.43.0",
+  "description": "An application for software development with AI models.",
   "main": "executable/server_webserver.js",
   "scripts": {
     "start": "node executable/server_webserver.js"
