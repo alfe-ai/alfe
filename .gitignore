@@ -18,3 +18,5 @@ node_modules/
 /config/.env
 
 data/config/repo_config.json
+
+/data/*.json
