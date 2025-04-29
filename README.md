@@ -8,11 +8,11 @@ Linux, Debian, Ubuntu, and similar.
 
 Windows Support is untested, official Windows support is planned.
 
-Scripts to assist with setup of a Debian VM with QEMU are here: https://github.com/alfe-ai/alfe-dev-vms
+Scripts to assist with setup of a Debian VM with QEMU are here: https://github.com/alfe-ai/alfe-dev_vms
 
 ---
 
-1. Configure SSH key for GitHub. This script may be used: https://github.com/alfe-ai/alfe-dev-vms/blob/main/generate_github_ssh_key.sh
+1. Configure SSH key for GitHub. This script may be used: https://github.com/alfe-ai/alfe-dev_vms/blob/main/generate_github_ssh_key.sh
 ```
 user@t03012025:~/git$ ./generate_github_ssh_key.sh 
 Generating public/private rsa key pair.
