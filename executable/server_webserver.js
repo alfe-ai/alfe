@@ -435,6 +435,28 @@ setupPostRoutes({
     PROJECT_ROOT,
 });
 
+/* ------------- REGISTER GET ROUTES (new) ------------- */
+const { setupGetRoutes } = require("./webserver/get_routes");
+setupGetRoutes({
+    app,
+    loadRepoConfig,
+    loadRepoJson,
+    saveRepoJson,
+    loadSingleRepoConfig,
+    loadGlobalInstructions,
+    getActiveInactiveChats,
+    generateFullDirectoryTree,
+    getGitMetaData,
+    getGitCommits,
+    getGitCommitGraph,
+    convertGitUrlToHttps,
+    analyzeProject,
+    analyzeCodeFlow,
+    AIModels,
+    DEFAULT_AIMODEL,
+    execSync,
+});
+
 /**
  * Start server
  */
