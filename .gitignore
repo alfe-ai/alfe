@@ -6,32 +6,15 @@ node_modules/
 *.swp
 .env
 
-/whimsical_puppet/.idea
-/whimsical_puppet/node_modules
-/whimsical_puppet/config.ini
-/whimsical_puppet/config/config.ini
-whimsical_puppet/data/*
-/whimsical_puppet/data/output/log.out.txt
-/whimsical_puppet/data/gpt_input.txt
-/whimsical_puppet/data/output
-/whimsical_puppet/data/input
-/whimsical_puppet/.env
-/whimsical_puppet/config/.env
-/whimsical_puppet/data/WhimsicalPuppet.json
-/whimsical_puppet/data/test_repo_for_alfe_dev.json
-
 /.idea
 /node_modules
 /config.ini
 /config/config.ini
-/data/*
 /data/output/log.out.txt
 /data/gpt_input.txt
 /data/output
 /data/input
 /.env
 /config/.env
-/data/WhimsicalPuppet.json
-/data/test_repo_for_alfe_dev.json
 
 
