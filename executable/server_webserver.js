@@ -918,41 +918,34 @@ app.post(
                 console.log(`[DEBUG] Written file to ${filePath}`);
             }
 
-            // Perform git commit with the commit summary
-            if (commitSummary) {
-                try {
-                    // Set git commit username and email
-                    execSync('git config user.name "whimsy"', {
-                        cwd: gitRepoLocalPath,
-                    });
-                    execSync('git config user.email "whimsy@sylph.box"', {
-                        cwd: gitRepoLocalPath,
-                    });
+            // Update Git commit username and email to use environment variables
+            const GIT_COMMIT_USERNAME = process.env.GIT_COMMIT_USERNAME || "whimsy";
+            const GIT_COMMIT_EMAIL = process.env.GIT_COMMIT_EMAIL || "whimsy@sylph.box";
 
-                    execSync("git add .", { cwd: gitRepoLocalPath });
-                    execSync(
-                        `git commit -m "${commitSummary.replace(/"/g, '\\"')}"`,
-                        { cwd: gitRepoLocalPath }
-                    );
-                    console.log(
-                        "[DEBUG] Git commit successful with message:",
-                        commitSummary
-                    );
+            // Replace hardcoded values with variables
+            execSync(`git config user.name "${GIT_COMMIT_USERNAME}"`, {
+                cwd: gitRepoLocalPath,
+            });
+            execSync(`git config user.email "${GIT_COMMIT_EMAIL}"`, {
+                cwd: gitRepoLocalPath,
+            });
 
-                    // Push only if chatData.pushAfterCommit is true
-                    if (chatData.pushAfterCommit) {
-                        execSync("git push", { cwd: gitRepoLocalPath });
-                        console.log("[DEBUG] Git push successful.");
-                    } else {
-                        console.log("[DEBUG] pushAfterCommit is false. Skipping git push.");
-                    }
-                } catch (err) {
-                    console.error("[ERROR] Git commit/push failed:", err);
-                }
+            execSync("git add .", { cwd: gitRepoLocalPath });
+            execSync(
+                `git commit -m "${commitSummary.replace(/"/g, '\\"')}"`,
+                { cwd: gitRepoLocalPath }
+            );
+            console.log(
+                "[DEBUG] Git commit successful with message:",
+                commitSummary
+            );
+
+            // Push only if chatData.pushAfterCommit is true
+            if (chatData.pushAfterCommit) {
+                execSync("git push", { cwd: gitRepoLocalPath });
+                console.log("[DEBUG] Git push successful.");
             } else {
-                console.warn(
-                    "[WARN] No commit summary found in assistant reply."
-                );
+                console.log("[DEBUG] pushAfterCommit is false. Skipping git push.");
             }
 
             // Save to chatHistory
