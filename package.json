@@ -16,8 +16,8 @@
     "openai": "^4.77.0"
   },
   "keywords": [],
-  "author": "Alfe AI",
-  "license": "To Be Determined",
+  "author": "Lochner Technology and Commerce, LLC, dba Alfe AI",
+  "license": "MIT",
   "engines": {
     "node": ">=14.0.0"
   },
