@@ -1,6 +1,8 @@
-# Alfe AI
-Primary Alfe AI FOSS Release / Aggregator Repo
+# Alfe AI  
 
+## Alfe Version 1: Sterling  
+
+### Related Repositories:  
 Alfe AI / Agent Instructions: https://github.com/alfe-ai/alfe-agent_instructions
 
 ---
