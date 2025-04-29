@@ -1,5 +1,3 @@
-// whimsical_puppet/test/server_integration.test.js
-
 const axios = require("axios");
 
 describe("Integration tests for server_webserver.js", () => {
