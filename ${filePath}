@@ -1,0 +1,3 @@
+\n`;
+                userMessage += fileContents;
+                userMessage += `\n
