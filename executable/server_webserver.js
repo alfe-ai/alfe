@@ -1,4 +1,3 @@
-===== Start of file: executable/server_webserver.js =====
 require("dotenv").config();
 const express = require("express");
 const path = require("path");
@@ -1320,4 +1319,3 @@ const server = http.createServer(app);
 server.listen(port, () => {
     console.log(`[DEBUG] Server running => http://localhost:${port}`);
 });
-===== End of file: executable/server_webserver.js =====
