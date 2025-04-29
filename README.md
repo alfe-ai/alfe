@@ -1,6 +1,6 @@
 # Alfe AI  
 
-## Alfe Version 1: Sterling  
+## Alfe AI Version 1: Sterling  
 #### beta-0.43.00
 
 #### System Requirements:
