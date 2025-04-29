@@ -44,9 +44,9 @@ ssh-rsa AAAAB3NzaC1yc2EAAAADAQABAAACAQD3iRx+BSrGFVvO7oYjElBvybBg2bRyCZqPkES4CVAy
 user@t03012025:~/git$ 
 ```
 
-1.1. Copy the entire contents of your '.pub' file (Beginning with 'ssh-rsa') to a new SSH key within GitHub:
-https://github.com/settings/ssh/new
-https://github.com/settings/keys
+1.1. Copy the entire contents of your '.pub' file (Beginning with 'ssh-rsa') to a new SSH key within GitHub:  
+https://github.com/settings/ssh/new  
+https://github.com/settings/keys  
 
 2. Ensure you have `nodejs` and `npm` installed on your system. On Debian, you can install them with:
 ```
