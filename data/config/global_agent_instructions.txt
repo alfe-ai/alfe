@@ -10,7 +10,7 @@ Agent Instructions (Alfe.DevAgent.Thinking beta-0.41.91):
 3. When changes are made, the full file must be provided in a code block.
 4. Do not include placeholders such as `// ... [Rest of your existing routes and logic]`; provide the entire file content.
 5. Apply the change to your prior known version of the code when fulfilling requests.
-6. Split your response into two sections:
+6. Split your response into two sections:  
    A. Commit Summary  
    B. Files
 7. When writing .sh files, please always include the `#!/bin/bash` hashbang at the top.
