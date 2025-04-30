@@ -83,7 +83,7 @@ Alfe AI / Agent Instructions: https://github.com/alfe-ai/alfe-agent_instructions
 
 This project is released under the MIT License.
 
-**Copyright (c) 2022-2025 [Lochner Technology](https://lochner.tech) and Commerce, LLC, dba Alfe AI.**
+**Copyright (c) 2022-2025 [Lochner Technology](https://lochner.tech) and Commerce, LLC, dba Alfe AI.**  
 https://github.com/lochner-technology  
 
 For full details, see the [LICENSE](https://github.com/alfe-ai/alfe/blob/main/LICENSE) file.
