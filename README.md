@@ -1,6 +1,6 @@
 # Alfe AI  
 
-## Alfe AI Version 1: Sterling  
+## [Alfe AI](https://alfe.sh) Version 1: Sterling  
 <!-- #### beta-0.43.0 -->
 
 ### FOSS AI Software Development Platform
