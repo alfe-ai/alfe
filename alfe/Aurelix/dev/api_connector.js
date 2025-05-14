@@ -13,6 +13,30 @@ const {
 const DEFAULT_AIMODEL = 'o3';
 
 /**
+ * Provide a function to read global agent instructions from disk
+ */
+function loadGlobalInstructions() {
+  try {
+    const PROJECT_ROOT = path.resolve(__dirname, '../../../../');
+    const GLOBAL_INSTRUCTIONS_PATH = path.join(
+        PROJECT_ROOT,
+        'data',
+        'config',
+        'global_agent_instructions.txt'
+    );
+    if (!fs.existsSync(GLOBAL_INSTRUCTIONS_PATH)) {
+      console.log('[DEBUG] global_agent_instructions.txt not found => returning empty string.');
+      return '';
+    }
+    const instructions = fs.readFileSync(GLOBAL_INSTRUCTIONS_PATH, 'utf-8');
+    return instructions;
+  } catch (e) {
+    console.error('[ERROR] reading global_agent_instructions:', e);
+    return '';
+  }
+}
+
+/**
  * POST /createChat
  * Creates a new chat for a specified repoName.
  */
@@ -42,11 +66,14 @@ router.post('/createChat', (req, res) => {
     }
   }
 
+  // Load global agent instructions
+  const globalInstructions = loadGlobalInstructions();
+
   // Create a new chat entry
   const newChatNumber = maxChatNumber + 1;
   dataObj[newChatNumber] = {
     status: 'ACTIVE',
-    agentInstructions: '',    // default or can be set here
+    agentInstructions: globalInstructions,
     attachedFiles: [],
     chatHistory: [],
     aiProvider: 'openai',
