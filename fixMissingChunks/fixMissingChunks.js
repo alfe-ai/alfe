@@ -57,8 +57,7 @@ Please provide the full new file with any missing chunks from the original re-ad
       endpoint,
       {
         model,
-        messages: [{ role: "user", content: userPrompt }],
-        max_tokens: 9000
+        messages: [{ role: "user", content: userPrompt }]
       },
       {
         headers: {
