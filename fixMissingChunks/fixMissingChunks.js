@@ -54,17 +54,18 @@ Please provide the full new file with any missing chunks from the original re-ad
 `;
 
     const response = await axios.post(
-        endpoint,
-        {
-          model,
-          messages: [{ role: "user", content: userPrompt }]
-        },
-        {
-          headers: {
-            'Content-Type': 'application/json',
-            'Authorization': `Bearer ${apiKey}`
-          }
+      endpoint,
+      {
+        model,
+        messages: [{ role: "user", content: userPrompt }],
+        max_tokens: 2048
+      },
+      {
+        headers: {
+          'Content-Type': 'application/json',
+          'Authorization': `Bearer ${apiKey}`
         }
+      }
     );
 
     const aiReply = response.data.choices[0].message.content || "";
