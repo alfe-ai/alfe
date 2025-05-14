@@ -117,6 +117,12 @@ app.use((req, res, next) => {
     next();
 });
 
+// Pass debug mode to templates if DEBUG is set
+app.use((req, res, next) => {
+    res.locals.debugMode = !!process.env.DEBUG;
+    next();
+});
+
 // EJS
 app.set("view engine", "ejs");
 app.set("views", path.join(__dirname, "views"));
@@ -441,7 +447,7 @@ setupGetRoutes({
  */
 const apiConnector = require("../alfe/Aurelix/dev/api_connector.js");
 
-// Host the routes from api_connector at /api
+// Host the routes from apiConnector at /api
 app.use("/api", apiConnector);
 
 /**
