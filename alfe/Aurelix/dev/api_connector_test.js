@@ -13,7 +13,7 @@ const axios = require('axios');
   try {
     console.log('=== Testing createChat endpoint ===');
     const createChatResponse = await axios.post(`${baseURL}/createChat`, {
-      repoName: 'SampleRepoName'
+      repoName: 'alfe-dev_test_repo'
     });
     console.log('Response from /createChat:', createChatResponse.data);
 
