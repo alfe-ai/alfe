@@ -2,8 +2,7 @@
 /**
  * fixMissingChunks.js
  *
- * A tool to parse input arguments and (in future) reconcile missing chunks
- * between two file revisions.
+ * Now calls an AI API to reconcile missing chunks between original/new file contents.
  *
  * Usage example:
  *   node fixMissingChunks.js --dir=/path/to/project \
@@ -18,8 +17,56 @@
 
 const yargs = require('yargs/yargs');
 const { hideBin } = require('yargs/helpers');
+const axios = require('axios');
 
-function main() {
+/**
+ * Calls an AI endpoint to reconcile missing chunks and return the merged file.
+ * @param {string} originalFileContent - The original file contents.
+ * @param {string} newFileContent - The new file contents.
+ * @returns {Promise<string>} - The merged file content from the AI.
+ */
+async function reconcileMissingChunksUsingAI(originalFileContent, newFileContent) {
+  console.log("[DEBUG] reconcileMissingChunksUsingAI => Preparing request to AI API...");
+  // Example placeholder for how you'd call your AI
+  try {
+    const apiKey = process.env.OPENAI_API_KEY || 'your_openai_api_key';
+    const model = 'gpt-4'; // or whichever model you prefer
+    const endpoint = 'https://api.openai.com/v1/chat/completions';
+
+    // Construct prompt
+    const userPrompt = `
+We have two file versions:
+Original:\n${originalFileContent}\n
+New:\n${newFileContent}\n
+
+Please provide the full new file with any missing chunks from the original re-added, merging them appropriately.
+`;
+
+    const response = await axios.post(
+      endpoint,
+      {
+        model,
+        messages: [{ role: "user", content: userPrompt }]
+      },
+      {
+        headers: {
+          'Content-Type': 'application/json',
+          'Authorization': `Bearer ${apiKey}`
+        }
+      }
+    );
+
+    const aiReply = response.data.choices[0].message.content || "";
+    console.log("[DEBUG] AI response received, returning merged content.");
+    return aiReply.trim();
+
+  } catch (error) {
+    console.error("[ERROR] AI API call failed:", error.message);
+    return newFileContent; // fallback to provided new file
+  }
+}
+
+async function main() {
   console.log("[DEBUG] fixMissingChunks.js => Starting script with verbose output...");
 
   const argv = yargs(hideBin(process.argv))
@@ -57,28 +104,36 @@ function main() {
     .help()
     .argv;
 
+  // Print debug info
   console.log("[DEBUG] Parsed arguments:", argv);
-
-  // Future logic to handle missing chunks goes here.
-  console.log(`[DEBUG] dir     => ${argv.dir}`);
+  console.log(`[DEBUG] dir => ${argv.dir}`);
   console.log(`[DEBUG] orighash => ${argv.orighash}`);
   console.log(`[DEBUG] newhash  => ${argv.newhash}`);
 
-  console.log(`[DEBUG] origfile contents length => ${argv.origfile ? argv.origfile.length : 0}`);
-  console.log(`[DEBUG] newfile contents length  => ${argv.newfile ? argv.newfile.length : 0}`);
+  // Original and new file contents from argv
+  let origContent = argv.origfile || "";
+  let newContent = argv.newfile || "";
 
-  if (argv.origfilepath) {
-    console.log(`[DEBUG] Using origfilepath => ${argv.origfilepath}`);
-    // Placeholder for reading from disk, if needed.
+  console.log("[DEBUG] Original content length =>", origContent.length);
+  console.log("[DEBUG] New content length      =>", newContent.length);
+
+  // In a real scenario, you might read from argv.origfilepath and argv.newfilepath if they exist.
+  // For demonstration, we'll just use origContent and newContent from the CLI args.
+
+  // Ask AI to fix missing chunks
+  if (origContent && newContent) {
+    reconcileMissingChunksUsingAI(origContent, newContent)
+      .then(mergedContent => {
+        console.log("===== Merged File Output Start =====");
+        console.log(mergedContent);
+        console.log("===== Merged File Output End =====");
+      })
+      .catch(err => {
+        console.error("[ERROR] Merging failed:", err);
+      });
+  } else {
+    console.log("[DEBUG] One or both file contents are empty. No merge performed.");
   }
-
-  if (argv.newfilepath) {
-    console.log(`[DEBUG] Using newfilepath => ${argv.newfilepath}`);
-    // Placeholder for reading from disk, if needed.
-  }
-
-  // Placeholder for reconciling missing chunks between origfile/newfile
-  console.log("[DEBUG] Script complete. Future logic can be added to reconcile file chunks.");
 }
 
 main();
