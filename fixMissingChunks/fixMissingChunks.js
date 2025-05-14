@@ -6,19 +6,27 @@
  *
  * Usage example:
  *   node fixMissingChunks.js --dir=/path/to/project \
- *     --orighash=abc123 --newhash=def456 \
- *     --origfile="previous file contents" \
- *     --newfile="new file contents"
+ *     --orighash=abc123 --newhash=def456
+ *
+ * The script automatically retrieves the list of changed files between those two commits
+ * and reconciles the missing chunks for each file using AI.
  *
  * Optional arguments:
- *   --origfilepath=/path/to/priorfile
- *   --newfilepath=/path/to/currentfile
+ *   --origfile  : Single string contents of old file (skip auto-git retrieval)
+ *   --newfile   : Single string contents of new file (skip auto-git retrieval)
+ *   --origfilepath : Local file path for old file
+ *   --newfilepath : Local file path for new file
+ *
+ * If none of the file content arguments are specified, the script auto-detects changed files
+ * using "git diff --name-only orighash newhash" and then calls "git show orighash:FILE"
+ * and "git show newhash:FILE" respectively.
  */
 
 const yargs = require('yargs/yargs');
 const { hideBin } = require('yargs/helpers');
 const axios = require('axios');
 const fs = require('fs');
+const { execSync } = require('child_process');
 
 /**
  * Calls an AI endpoint to reconcile missing chunks and return the merged file.
@@ -28,13 +36,11 @@ const fs = require('fs');
  */
 async function reconcileMissingChunksUsingAI(originalFileContent, newFileContent) {
   console.log("[DEBUG] reconcileMissingChunksUsingAI => Preparing request to AI API...");
-  // Example placeholder for how you'd call your AI
   try {
     const apiKey = process.env.OPENAI_API_KEY || 'your_openai_api_key';
-    const model = 'gpt-4'; // or whichever model you prefer
+    const model = 'gpt-4'; // or whichever model is preferred
     const endpoint = 'https://api.openai.com/v1/chat/completions';
 
-    // Construct prompt
     const userPrompt = `
 We have two file versions:
 Original:\n${originalFileContent}\n
@@ -63,7 +69,44 @@ Please provide the full new file with any missing chunks from the original re-ad
 
   } catch (error) {
     console.error("[ERROR] AI API call failed:", error.message);
-    return newFileContent; // fallback to provided new file
+    return newFileContent; // fallback
+  }
+}
+
+/**
+ * For a given pair of orighash/newhash, returns an array of changed filenames
+ * by running "git diff --name-only".
+ * @param {string} repoDir - The path to the repository
+ * @param {string} origHash - Old commit hash
+ * @param {string} newHash - New commit hash
+ */
+function getChangedFiles(repoDir, origHash, newHash) {
+  console.log(`[DEBUG] getChangedFiles => git diff --name-only ${origHash} ${newHash}`);
+  try {
+    const diffOutput = execSync(`git diff --name-only ${origHash} ${newHash}`, { cwd: repoDir }).toString().trim();
+    if (!diffOutput) {
+      console.log("[DEBUG] No changed files detected between the specified commits.");
+      return [];
+    }
+    const files = diffOutput.split('\n').filter(line => line.trim().length > 0);
+    return files;
+  } catch (e) {
+    console.error("[ERROR] Unable to get changed files:", e);
+    return [];
+  }
+}
+
+/**
+ * Retrieves file content by using "git show {commitHash}:{filepath}"
+ */
+function getFileContentFromGit(repoDir, commitHash, filePath) {
+  try {
+    const cmd = `git show ${commitHash}:${filePath}`;
+    const content = execSync(cmd, { cwd: repoDir }).toString();
+    return content;
+  } catch (err) {
+    console.error(`[ERROR] Failed to retrieve file content for ${filePath} at commit ${commitHash}:`, err);
+    return "";
   }
 }
 
@@ -88,11 +131,11 @@ async function main() {
     })
     .option('origfile', {
       type: 'string',
-      describe: 'String contents of file from prior revision'
+      describe: 'String contents of the file from prior revision'
     })
     .option('newfile', {
       type: 'string',
-      describe: 'String contents of file from new revision'
+      describe: 'String contents of the file from new revision'
     })
     .option('origfilepath', {
       type: 'string',
@@ -105,17 +148,15 @@ async function main() {
     .help()
     .argv;
 
-  // Print debug info
   console.log("[DEBUG] Parsed arguments:", argv);
   console.log(`[DEBUG] dir => ${argv.dir}`);
   console.log(`[DEBUG] orighash => ${argv.orighash}`);
-  console.log(`[DEBUG] newhash  => ${argv.newhash}`);
+  console.log(`[DEBUG] newhash => ${argv.newhash}`);
 
-  // Original and new file contents from argv
   let origContent = argv.origfile || "";
   let newContent = argv.newfile || "";
 
-  // If file-based arguments exist, read them if string-based contents are empty
+  // Possibly read from local files if user specified them
   if (!origContent && argv.origfilepath) {
     try {
       origContent = fs.readFileSync(argv.origfilepath, "utf-8");
@@ -131,10 +172,43 @@ async function main() {
     }
   }
 
+  // If we still have no content, automatically gather changed files
+  if (!origContent && !newContent) {
+    const changedFiles = getChangedFiles(argv.dir, argv.orighash, argv.newhash);
+    if (changedFiles.length === 0) {
+      console.log("[DEBUG] No files changed or cannot detect changes. Exiting.");
+      return;
+    }
+
+    console.log(`[DEBUG] Found ${changedFiles.length} changed file(s). Processing each...`);
+    for (const filePath of changedFiles) {
+      console.log(`\n[DEBUG] Processing file => ${filePath}`);
+      const oldFileContent = getFileContentFromGit(argv.dir, argv.orighash, filePath);
+      const newFileContent = getFileContentFromGit(argv.dir, argv.newhash, filePath);
+
+      if (!oldFileContent && !newFileContent) {
+        console.log("[DEBUG] No content for this file; skipping AI call.");
+        continue;
+      }
+
+      try {
+        const mergedContent = await reconcileMissingChunksUsingAI(oldFileContent, newFileContent);
+        console.log(`===== Merged File Output Start: ${filePath} =====`);
+        console.log(mergedContent);
+        console.log(`===== Merged File Output End: ${filePath} =====`);
+      } catch (err) {
+        console.error("[ERROR] Merging failed:", err);
+      }
+    }
+    return;
+  }
+
+  // Single-file scenario (for backward compatibility)
+  console.log("[DEBUG] Single-file scenario or partial user input. Attempting to reconcile...");
+
   console.log("[DEBUG] Original content length =>", origContent.length);
   console.log("[DEBUG] New content length      =>", newContent.length);
 
-  // Ask AI to fix missing chunks
   if (origContent && newContent) {
     reconcileMissingChunksUsingAI(origContent, newContent)
       .then(mergedContent => {
@@ -146,7 +220,7 @@ async function main() {
         console.error("[ERROR] Merging failed:", err);
       });
   } else {
-    console.log("[DEBUG] One or both file contents are empty. No merge performed.");
+    console.log("[DEBUG] At least one file content is empty. No merge performed.");
   }
 }
 
