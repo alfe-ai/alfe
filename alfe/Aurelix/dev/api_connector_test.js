@@ -8,7 +8,7 @@
 const axios = require('axios');
 
 (async () => {
-  const baseURL = 'http://localhost:3000/api';
+  const baseURL = 'http://localhost:3444/api';
 
   try {
     console.log('=== Testing createChat endpoint ===');
