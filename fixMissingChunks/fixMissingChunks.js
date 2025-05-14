@@ -22,6 +22,10 @@
  * and "git show newhash:FILE" respectively.
  */
 
+const path = require('path');
+const projectRoot = path.resolve(__dirname, '..');
+require('dotenv').config({ path: path.join(projectRoot, '.env') });
+
 const yargs = require('yargs/yargs');
 const { hideBin } = require('yargs/helpers');
 const axios = require('axios');
@@ -50,17 +54,17 @@ Please provide the full new file with any missing chunks from the original re-ad
 `;
 
     const response = await axios.post(
-      endpoint,
-      {
-        model,
-        messages: [{ role: "user", content: userPrompt }]
-      },
-      {
-        headers: {
-          'Content-Type': 'application/json',
-          'Authorization': `Bearer ${apiKey}`
+        endpoint,
+        {
+          model,
+          messages: [{ role: "user", content: userPrompt }]
+        },
+        {
+          headers: {
+            'Content-Type': 'application/json',
+            'Authorization': `Bearer ${apiKey}`
+          }
         }
-      }
     );
 
     const aiReply = response.data.choices[0].message.content || "";
@@ -114,39 +118,39 @@ async function main() {
   console.log("[DEBUG] fixMissingChunks.js => Starting script with verbose output...");
 
   const argv = yargs(hideBin(process.argv))
-    .option('dir', {
-      type: 'string',
-      describe: 'Path to project directory to operate on',
-      demandOption: true
-    })
-    .option('orighash', {
-      type: 'string',
-      describe: 'Prior revision hash',
-      demandOption: true
-    })
-    .option('newhash', {
-      type: 'string',
-      describe: 'New revision hash',
-      demandOption: true
-    })
-    .option('origfile', {
-      type: 'string',
-      describe: 'String contents of the file from prior revision'
-    })
-    .option('newfile', {
-      type: 'string',
-      describe: 'String contents of the file from new revision'
-    })
-    .option('origfilepath', {
-      type: 'string',
-      describe: 'Path to the file from prior revision (optional)'
-    })
-    .option('newfilepath', {
-      type: 'string',
-      describe: 'Path to the file from new revision (optional)'
-    })
-    .help()
-    .argv;
+      .option('dir', {
+        type: 'string',
+        describe: 'Path to project directory to operate on',
+        demandOption: true
+      })
+      .option('orighash', {
+        type: 'string',
+        describe: 'Prior revision hash',
+        demandOption: true
+      })
+      .option('newhash', {
+        type: 'string',
+        describe: 'New revision hash',
+        demandOption: true
+      })
+      .option('origfile', {
+        type: 'string',
+        describe: 'String contents of the file from prior revision'
+      })
+      .option('newfile', {
+        type: 'string',
+        describe: 'String contents of the file from new revision'
+      })
+      .option('origfilepath', {
+        type: 'string',
+        describe: 'Path to the file from prior revision (optional)'
+      })
+      .option('newfilepath', {
+        type: 'string',
+        describe: 'Path to the file from new revision (optional)'
+      })
+      .help()
+      .argv;
 
   console.log("[DEBUG] Parsed arguments:", argv);
   console.log(`[DEBUG] dir => ${argv.dir}`);
@@ -211,14 +215,14 @@ async function main() {
 
   if (origContent && newContent) {
     reconcileMissingChunksUsingAI(origContent, newContent)
-      .then(mergedContent => {
-        console.log("===== Merged File Output Start =====");
-        console.log(mergedContent);
-        console.log("===== Merged File Output End =====");
-      })
-      .catch(err => {
-        console.error("[ERROR] Merging failed:", err);
-      });
+        .then(mergedContent => {
+          console.log("===== Merged File Output Start =====");
+          console.log(mergedContent);
+          console.log("===== Merged File Output End =====");
+        })
+        .catch(err => {
+          console.error("[ERROR] Merging failed:", err);
+        });
   } else {
     console.log("[DEBUG] At least one file content is empty. No merge performed.");
   }
