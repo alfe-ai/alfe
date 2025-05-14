@@ -19,6 +19,7 @@ function loadGlobalInstructions() {
   console.log('[DEBUG] loadGlobalInstructions() => invoked in api_connector.');
   try {
     const PROJECT_ROOT = path.resolve(__dirname, '../../../../');
+    console.log(`[DEBUG] Using PROJECT_ROOT => ${PROJECT_ROOT}`);
     const GLOBAL_INSTRUCTIONS_PATH = path.join(
         PROJECT_ROOT,
         'data',
