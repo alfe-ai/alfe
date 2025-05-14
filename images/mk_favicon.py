@@ -9,14 +9,16 @@ def main():
     if len(sys.argv) > 1:
         image_path = sys.argv[1]
     else:
-        image_path = '/mnt/data/Minimalist_favicon_design_featuring_a_single_styli.png'
+        image_path = 'Minimalist_favicon_design_featuring_a_single_styli.png'
 
     print(f"[DEBUG] Using image: {image_path}")
 
-    # Check if /mnt/data directory exists; create if not
-    favicon_dir = '/mnt/data'
+    # Use the current working directory as the output location
+    favicon_dir = os.getcwd()
+    print(f"[DEBUG] Using output directory for favicons => {favicon_dir}")
+
     if not os.path.exists(favicon_dir):
-        print("[DEBUG] Creating /mnt/data directory.")
+        print(f"[DEBUG] Creating directory => {favicon_dir}")
         os.makedirs(favicon_dir, exist_ok=True)
 
     # Attempt to open the image
@@ -31,7 +33,7 @@ def main():
 
     # 1) Create a multi-size favicon
     favicon_sizes = [(16, 16), (32, 32), (48, 48), (64, 64)]
-    multi_output_path = '/mnt/data/alfe_favicon.ico'
+    multi_output_path = os.path.join(favicon_dir, 'alfe_favicon.ico')
     try:
         img.save(multi_output_path, format='ICO', sizes=favicon_sizes)
         print(f"[DEBUG] Multi-size favicon saved as {multi_output_path}")
@@ -39,7 +41,7 @@ def main():
         print(f"[ERROR] Failed to save multi-size favicon: {e}")
 
     # 2) Create a single 64x64 favicon
-    single_64_output_path = '/mnt/data/alfe_favicon_64x64.ico'
+    single_64_output_path = os.path.join(favicon_dir, 'alfe_favicon_64x64.ico')
     try:
         img.save(single_64_output_path, format='ICO', sizes=[(64, 64)])
         print(f"[DEBUG] 64x64 favicon saved as {single_64_output_path}")
@@ -47,7 +49,7 @@ def main():
         print(f"[ERROR] Failed to save 64x64 favicon: {e}")
 
     # 3) Create another single 64x64 favicon (mimicking prior second variant)
-    clean_64_output_path = '/mnt/data/alfe_favicon_clean_64x64.ico'
+    clean_64_output_path = os.path.join(favicon_dir, 'alfe_favicon_clean_64x64.ico')
     try:
         img.save(clean_64_output_path, format='ICO', sizes=[(64, 64)])
         print(f"[DEBUG] Additional 64x64 favicon saved as {clean_64_output_path}")
