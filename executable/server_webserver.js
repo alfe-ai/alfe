@@ -453,7 +453,15 @@ app.use("/api", apiConnector);
 /**
  * Start server
  */
-const port = process.env.SERVER_PORT || 3000;
+const debugPort = 3444;
+let port;
+if (process.env.DEBUG) {
+    console.log(`[DEBUG] environment variable set => Using debug port ${debugPort}`);
+    port = debugPort;
+} else {
+    port = process.env.SERVER_PORT || 3000;
+}
 http.createServer(app).listen(port, () => {
     console.log(`[DEBUG] Server running => http://localhost:${port}`);
 });
+
