@@ -18,6 +18,7 @@
 const yargs = require('yargs/yargs');
 const { hideBin } = require('yargs/helpers');
 const axios = require('axios');
+const fs = require('fs');
 
 /**
  * Calls an AI endpoint to reconcile missing chunks and return the merged file.
@@ -114,11 +115,24 @@ async function main() {
   let origContent = argv.origfile || "";
   let newContent = argv.newfile || "";
 
+  // If file-based arguments exist, read them if string-based contents are empty
+  if (!origContent && argv.origfilepath) {
+    try {
+      origContent = fs.readFileSync(argv.origfilepath, "utf-8");
+    } catch (e) {
+      console.error("[ERROR] Unable to read origfilepath:", e);
+    }
+  }
+  if (!newContent && argv.newfilepath) {
+    try {
+      newContent = fs.readFileSync(argv.newfilepath, "utf-8");
+    } catch (e) {
+      console.error("[ERROR] Unable to read newfilepath:", e);
+    }
+  }
+
   console.log("[DEBUG] Original content length =>", origContent.length);
   console.log("[DEBUG] New content length      =>", newContent.length);
-
-  // In a real scenario, you might read from argv.origfilepath and argv.newfilepath if they exist.
-  // For demonstration, we'll just use origContent and newContent from the CLI args.
 
   // Ask AI to fix missing chunks
   if (origContent && newContent) {
