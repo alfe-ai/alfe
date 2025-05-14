@@ -42,7 +42,7 @@ async function reconcileMissingChunksUsingAI(originalFileContent, newFileContent
   console.log("[DEBUG] reconcileMissingChunksUsingAI => Preparing request to AI API...");
   try {
     const apiKey = process.env.OPENAI_API_KEY || 'your_openai_api_key';
-    const model = 'gpt-4'; // or whichever model is preferred
+    const model = 'o3'; // updated to use "o3"
     const endpoint = 'https://api.openai.com/v1/chat/completions';
 
     const userPrompt = `
