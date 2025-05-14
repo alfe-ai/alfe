@@ -1,0 +1,20 @@
+<div class="ai-selectors">
+    <select name="aiProvider" id="aiProvider" onchange="this.form.submit()">
+        <option value="openai" <%= chatData.aiProvider.toLowerCase() === 'openai' ? 'selected' : '' %>>OpenAI</option>
+        <option value="openrouter" <%= chatData.aiProvider.toLowerCase() === 'openrouter' ? 'selected' : '' %>>OpenRouter</option>
+        <option value="litellm" <%= chatData.aiProvider.toLowerCase() === 'litellm' ? 'selected' : '' %>>LiteLLM</option>
+        <option value="deepseek api" <%= chatData.aiProvider.toLowerCase() === 'deepseek api' ? 'selected' : '' %>>DeepSeek API</option>
+        <option value="deepseek local" <%= chatData.aiProvider.toLowerCase() === 'deepseek local' ? 'selected' : '' %>>DeepSeek Local</option>
+    </select>
+    <select name="aiModel" id="aiModel" onchange="this.form.submit()">
+        <% if (AIModels && AIModels.length > 0) { %>
+            <% AIModels.forEach(function(model) { %>
+                <option value="<%= model %>" <%= model === aiModel ? 'selected' : '' %>>
+                    <%= model %>
+                </option>
+            <% }); %>
+        <% } else { %>
+            <option value="<%= aiModel %>" selected><%= aiModel %></option>
+        <% } %>
+    </select>
+</div>
