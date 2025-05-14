@@ -6,7 +6,8 @@ const fs = require('fs');
 // Import helpers for loading/saving the repo JSON
 const {
   loadRepoJson,
-  saveRepoJson
+  saveRepoJson,
+  loadSingleRepoConfig
 } = require('../../../server_defs');
 
 // Default model
@@ -38,6 +39,60 @@ function loadGlobalInstructions() {
     console.error('[ERROR] reading global_agent_instructions:', e);
     return '';
   }
+}
+
+/**
+ * Builds a directory tree structure as an object, skipping hidden files and those in an excluded set.
+ * @param {string} dirPath
+ * @param {string} rootDir
+ * @param {string[]} attachedFiles
+ * @returns {Object} Directory tree with children.
+ */
+function buildFileTree(dirPath, rootDir, attachedFiles) {
+  const excludedFilenames = new Set();
+  if (!fs.existsSync(dirPath)) {
+    return { name: path.basename(dirPath), type: 'directory', children: [], path: '', isAttached: false };
+  }
+
+  const items = fs.readdirSync(dirPath, { withFileTypes: true })
+    .filter(item => {
+      if (item.name.startsWith('.')) return false;
+      if (excludedFilenames.has(item.name)) return false;
+      return true;
+    })
+    .sort((a, b) => {
+      // directories first
+      if (a.isDirectory() && !b.isDirectory()) return -1;
+      if (!a.isDirectory() && b.isDirectory()) return 1;
+      return a.name.localeCompare(b.name);
+    });
+
+  const children = [];
+  for (const item of items) {
+    const absolutePath = path.join(dirPath, item.name);
+    const relativePath = path.relative(rootDir, absolutePath).split(path.sep).join('/');
+    const isDir = item.isDirectory();
+
+    if (isDir) {
+      children.push(buildFileTree(absolutePath, rootDir, attachedFiles));
+    } else {
+      children.push({
+        name: item.name,
+        path: relativePath,
+        type: 'file',
+        isAttached: attachedFiles.includes(relativePath),
+        children: []
+      });
+    }
+  }
+
+  return {
+    name: path.basename(dirPath),
+    path: path.relative(rootDir, dirPath).split(path.sep).join('/'),
+    type: 'directory',
+    isAttached: false,
+    children
+  };
 }
 
 /**
@@ -117,6 +172,34 @@ router.post('/createGenericChat', (req, res) => {
     success: true,
     data: chatData
   });
+});
+
+/**
+ * GET /listFileTree/:repoName/:chatNumber
+ * Returns JSON structure of the file tree for a specified repository/chat.
+ */
+router.get('/listFileTree/:repoName/:chatNumber', (req, res) => {
+  const { repoName, chatNumber } = req.params;
+  // Load repo config to find local path
+  const repoConfig = loadSingleRepoConfig(repoName);
+  if (!repoConfig) {
+    console.log('[DEBUG] /listFileTree => Repo config not found:', repoName);
+    return res.status(400).json({ error: `Repo '${repoName}' not found.` });
+  }
+
+  const dataObj = loadRepoJson(repoName);
+  const chatData = dataObj[chatNumber];
+  if (!chatData) {
+    console.log('[DEBUG] /listFileTree => Chat not found:', chatNumber);
+    return res.status(404).json({ error: `Chat #${chatNumber} not found in repo '${repoName}'.` });
+  }
+
+  const attachedFiles = chatData.attachedFiles || [];
+  const { gitRepoLocalPath } = repoConfig;
+
+  // Build the directory tree
+  const tree = buildFileTree(gitRepoLocalPath, gitRepoLocalPath, attachedFiles);
+  return res.json({ success: true, tree });
 });
 
 module.exports = router;
