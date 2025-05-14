@@ -1,6 +1,7 @@
 #!/usr/bin/env python3
 
 import sys
+import os
 from PIL import Image
 
 def main():
@@ -11,6 +12,12 @@ def main():
         image_path = '/mnt/data/Minimalist_favicon_design_featuring_a_single_styli.png'
 
     print(f"[DEBUG] Using image: {image_path}")
+
+    # Check if /mnt/data directory exists; create if not
+    favicon_dir = '/mnt/data'
+    if not os.path.exists(favicon_dir):
+        print("[DEBUG] Creating /mnt/data directory.")
+        os.makedirs(favicon_dir, exist_ok=True)
 
     # Attempt to open the image
     try:
