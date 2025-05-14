@@ -458,10 +458,17 @@ setupGetRoutes({
 });
 
 /**
+ * Import the api_connector.js router
+ */
+const apiConnector = require("../alfe/Aurelix/dev/api_connector.js");
+
+// Host the routes from api_connector at /api
+app.use("/api", apiConnector);
+
+/**
  * Start server
  */
 const port = process.env.SERVER_PORT || 3000;
 http.createServer(app).listen(port, () => {
     console.log(`[DEBUG] Server running => http://localhost:${port}`);
 });
-
