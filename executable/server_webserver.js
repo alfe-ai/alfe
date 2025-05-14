@@ -71,6 +71,9 @@ const {
     saveRepoConfig,
     getGitFileMetaData,
     loadRepoConfig,
+    getRepoJsonPath,
+    loadRepoJson,
+    saveRepoJson
 } = require("../server_defs");
 
 console.log("[DEBUG] Starting server_webserver.js => CWD:", process.cwd());
@@ -190,10 +193,9 @@ const { analyzeProject } = require("./directory_analyzer");
  */
 const EXCLUDED_FILENAMES = new Set();
 
-/* ------------------------------------------------------------------
- * Helper functions: git metadata, directory tree, etc.
- * (omitted here for brevity – unchanged from previous version)
- * -----------------------------------------------------------------*/
+/**
+ * Helper function to gather Git metadata for the repository.
+ */
 function getGitMetaData(repoPath) {
     let rev = "",
         dateStr = "",
@@ -341,34 +343,6 @@ function generateDirectoryTree(dirPath, rootDir, repoName, attachedFiles) {
 
 function generateFullDirectoryTree(repoPath, repoName, attachedFiles) {
     return generateDirectoryTree(repoPath, repoPath, repoName, attachedFiles);
-}
-
-/**
- * Repo JSON data
- */
-function getRepoJsonPath(repoName) {
-    const dataDir = path.join(PROJECT_ROOT, "data");
-    if (!fs.existsSync(dataDir)) fs.mkdirSync(dataDir, { recursive: true });
-    return path.join(dataDir, `${repoName}.json`);
-}
-
-function loadRepoJson(repoName) {
-    const filePath = getRepoJsonPath(repoName);
-    if (!fs.existsSync(filePath)) {
-        fs.writeFileSync(filePath, "{}", "utf-8");
-        return {};
-    }
-    try {
-        return JSON.parse(fs.readFileSync(filePath, "utf-8"));
-    } catch (err) {
-        console.error("[ERROR] loadRepoJson:", err);
-        return {};
-    }
-}
-
-function saveRepoJson(repoName, data) {
-    const filePath = getRepoJsonPath(repoName);
-    fs.writeFileSync(filePath, JSON.stringify(data, null, 2), "utf-8");
 }
 
 /**

@@ -85,4 +85,48 @@ function getGitFileMetaData(filePath, repoPath) {
     return { rev, dateStr };
 }
 
-module.exports = { loadRepoConfig, loadSingleRepoConfig, saveRepoConfig, getGitFileMetaData };
+/**
+ * Returns the path to the JSON file for the specified repository.
+ */
+function getRepoJsonPath(repoName) {
+    const dataDir = path.join(__dirname, 'data');
+    if (!fs.existsSync(dataDir)) fs.mkdirSync(dataDir, { recursive: true });
+    return path.join(dataDir, `${repoName}.json`);
+}
+
+/**
+ * Loads JSON data for the specified repository. Creates an empty file if none exists.
+ */
+function loadRepoJson(repoName) {
+    const filePath = getRepoJsonPath(repoName);
+    if (!fs.existsSync(filePath)) {
+        fs.writeFileSync(filePath, "{}", "utf-8");
+        return {};
+    }
+    try {
+        return JSON.parse(fs.readFileSync(filePath, "utf-8"));
+    } catch (err) {
+        console.error("[ERROR] loadRepoJson:", err);
+        return {};
+    }
+}
+
+/**
+ * Saves the provided data object to the repository's JSON file.
+ */
+function saveRepoJson(repoName, data) {
+    const filePath = getRepoJsonPath(repoName);
+    fs.writeFileSync(filePath, JSON.stringify(data, null, 2), "utf-8");
+}
+
+module.exports = {
+    loadRepoConfig,
+    loadSingleRepoConfig,
+    saveRepoConfig,
+    getGitFileMetaData,
+
+    // Newly added exports
+    getRepoJsonPath,
+    loadRepoJson,
+    saveRepoJson
+};
