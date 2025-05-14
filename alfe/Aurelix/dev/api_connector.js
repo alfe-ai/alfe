@@ -16,6 +16,7 @@ const DEFAULT_AIMODEL = 'o3';
  * Provide a function to read global agent instructions from disk
  */
 function loadGlobalInstructions() {
+  console.log('[DEBUG] loadGlobalInstructions() => invoked in api_connector.');
   try {
     const PROJECT_ROOT = path.resolve(__dirname, '../../../../');
     const GLOBAL_INSTRUCTIONS_PATH = path.join(
@@ -24,11 +25,13 @@ function loadGlobalInstructions() {
         'config',
         'global_agent_instructions.txt'
     );
+    console.log(`[DEBUG] loadGlobalInstructions => Checking for file at: ${GLOBAL_INSTRUCTIONS_PATH}`);
     if (!fs.existsSync(GLOBAL_INSTRUCTIONS_PATH)) {
       console.log('[DEBUG] global_agent_instructions.txt not found => returning empty string.');
       return '';
     }
     const instructions = fs.readFileSync(GLOBAL_INSTRUCTIONS_PATH, 'utf-8');
+    console.log(`[DEBUG] loadGlobalInstructions => read file successfully, length: ${instructions.length}`);
     return instructions;
   } catch (e) {
     console.error('[ERROR] reading global_agent_instructions:', e);

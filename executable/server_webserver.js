@@ -24,11 +24,16 @@ const GLOBAL_INSTRUCTIONS_PATH = path.join(
     "global_agent_instructions.txt"
 );
 function loadGlobalInstructions() {
+    console.log(`[DEBUG] loadGlobalInstructions() => Entered function.`);
     try {
         if (!fs.existsSync(GLOBAL_INSTRUCTIONS_PATH)) {
+            console.log(`[DEBUG] loadGlobalInstructions => File does not exist at ${GLOBAL_INSTRUCTIONS_PATH}`);
             return "";
         }
-        return fs.readFileSync(GLOBAL_INSTRUCTIONS_PATH, "utf-8");
+        console.log(`[DEBUG] loadGlobalInstructions => Found file at ${GLOBAL_INSTRUCTIONS_PATH}, reading...`);
+        const content = fs.readFileSync(GLOBAL_INSTRUCTIONS_PATH, "utf-8");
+        console.log(`[DEBUG] loadGlobalInstructions => Successfully read instructions. Length: ${content.length}`);
+        return content;
     } catch (e) {
         console.error("Error reading global instructions:", e);
         return "";

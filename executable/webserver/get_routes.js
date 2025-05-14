@@ -31,7 +31,9 @@ function setupGetRoutes(deps) {
 
     /* ---------- Global instructions ---------- */
     app.get("/global_instructions", (_req, res) => {
+        console.log("[DEBUG] GET /global_instructions => calling loadGlobalInstructions...");
         const currentGlobal = loadGlobalInstructions();
+        console.log(`[DEBUG] GET /global_instructions => instructions length: ${currentGlobal.length}`);
         res.render("global_instructions", { currentGlobal });
     });
 
