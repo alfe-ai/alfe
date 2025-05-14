@@ -58,7 +58,7 @@ Please provide the full new file with any missing chunks from the original re-ad
       {
         model,
         messages: [{ role: "user", content: userPrompt }],
-        max_tokens: 2048
+        max_tokens: 90000
       },
       {
         headers: {
