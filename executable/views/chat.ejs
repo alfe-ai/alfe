@@ -12,6 +12,11 @@
         : 'data:image/svg+xml;utf8,<svg xmlns=\'http://www.w3.org/2000/svg\' viewBox=\'0 0 64 64\'><polygon points=\'32,4 4,60 60,60\' fill=\'black\' /></svg>'
       %>"
     >
+    <link
+      rel="alternate icon"
+      href="/favicon.ico"
+      type="image/x-icon"
+    >
     <link rel="stylesheet" href="/CSS/chat.css">
     <script src="https://d3js.org/d3.v5.min.js"></script>
 </head>
@@ -199,9 +204,6 @@
         <label for="chatInput">Submit new chat input:</label><br/>
         <textarea id="chatInput" name="message" rows="5"></textarea><br/>
 
-<!--         <label for="imageFiles">Upload Images:</label><br/> -->
-<!--         <input type="file" id="imageFiles" name="imageFiles" multiple accept="image/*"><br/><br/> -->
-
         <p id="tokenCountDisplay">Tokens: 0</p>
 
         <input type="hidden" id="chatGPTURL" name="chatGPTURL" value="<%= chatGPTURL %>">
@@ -210,7 +212,6 @@
 
         <div class="form-buttons">
             <button type="submit">Submit</button>
-<!--             <button type="submit" formaction="/<%= gitRepoNameCLI %>/chat/<%= chatNumber %>/queue">Queue</button> -->
         </div>
     </form>
     <br/>
@@ -258,10 +259,7 @@
     <div class="tabs">
         <div class="tab-buttons">
             <button class="tablink active" data-tab="gitTreeTab">Git Log</button>
-            <!--<button class="tablink" data-tab="gitLogTab">Git Log</button>-->
             <button class="tablink" data-tab="chatHistoryTab">Chat History</button>
-            <!--<button class="tablink" data-tab="queuedMessagesTab">Queued Messages</button>-->
-            <!--<button class="tablink" data-tab="previousChatsTab">Previous Chats</button>-->
             <button class="tablink" data-tab="outputFilesTab">Output Files</button>
             <button class="tablink" data-tab="summaryTab">Summaries</button>
         </div>
