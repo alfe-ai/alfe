@@ -229,4 +229,40 @@ router.get('/listFileTree/:repoName/:chatNumber', (req, res) => {
   return res.json({ success: true, tree });
 });
 
+/* ---------- toggle file attachment ---------- */
+router.post("/:repoName/chat/:chatNumber/toggle_attached", (req, res) => {
+    const { repoName, chatNumber } = req.params;
+    const { filePath } = req.body;
+    if (!filePath) {
+        return res.status(400).json({ error: "No filePath provided." });
+    }
+
+    const dataObj = loadRepoJson(repoName);
+    const chatData = dataObj[chatNumber];
+    if (!chatData) {
+        return res.status(404).json({
+            error: `Chat #${chatNumber} not found in repo '${repoName}'.`,
+        });
+    }
+
+    chatData.attachedFiles = chatData.attachedFiles || [];
+    const index = chatData.attachedFiles.indexOf(filePath);
+
+    if (index >= 0) {
+        // Remove from attached
+        chatData.attachedFiles.splice(index, 1);
+    } else {
+        // Add to attached
+        chatData.attachedFiles.push(filePath);
+    }
+
+    dataObj[chatNumber] = chatData;
+    saveRepoJson(repoName, dataObj);
+
+    return res.json({
+        success: true,
+        attachedFiles: chatData.attachedFiles,
+    });
+});
+
 module.exports = router;
