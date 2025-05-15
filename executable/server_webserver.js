@@ -111,6 +111,8 @@ app.use((req, res, next) => {
         environment = "PROD";
     } else if (host.includes("devwhimsy") || host.includes("dev.whimsy")) {
         environment = "DEV";
+    } else if (host.includes("localhost") || host.includes("127.0.0.1")) {
+        environment = "DEV";
     }
     res.locals.environment = environment;
     console.log(`[DEBUG] Host: ${host}, Environment: ${environment}`);
@@ -464,4 +466,3 @@ if (process.env.DEBUG) {
 http.createServer(app).listen(port, () => {
     console.log(`[DEBUG] Server running => http://localhost:${port}`);
 });
-
