@@ -43,6 +43,24 @@ function loadGlobalInstructions() {
 }
 
 /**
+ * Checks whether the given file path is attached. Supports both "relativePath"
+ * and "repoName|relativePath" formats.
+ * @param {string[]} attachedFiles
+ * @param {string} relativePath
+ * @returns {boolean}
+ */
+function isPathAttached(attachedFiles, relativePath) {
+  return attachedFiles.some(af => {
+    const splitted = af.split('|');
+    if (splitted.length === 2) {
+      return splitted[1] === relativePath;
+    } else {
+      return af === relativePath;
+    }
+  });
+}
+
+/**
  * Builds a directory tree structure as an object, skipping hidden files and those in an excluded set.
  * @param {string} dirPath
  * @param {string} rootDir
@@ -81,7 +99,7 @@ function buildFileTree(dirPath, rootDir, attachedFiles) {
         name: item.name,
         path: relativePath,
         type: 'file',
-        isAttached: attachedFiles.includes(relativePath),
+        isAttached: isPathAttached(attachedFiles, relativePath),
         children: []
       });
     }
