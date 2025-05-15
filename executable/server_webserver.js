@@ -111,9 +111,14 @@ app.use((req, res, next) => {
         environment = "PROD";
     } else if (host.includes("devwhimsy") || host.includes("dev.whimsy")) {
         environment = "DEV";
-    } else if (host.includes("localhost") || host.includes("127.0.0.1")) {
+    }
+
+    // if DEBUG=true from .env, set environment = "DEV"
+    if (process.env.DEBUG) {
         environment = "DEV";
     }
+
+
     res.locals.environment = environment;
     console.log(`[DEBUG] Host: ${host}, Environment: ${environment}`);
     next();
