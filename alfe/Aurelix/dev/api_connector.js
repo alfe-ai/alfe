@@ -1,4 +1,5 @@
 const express = require('express');
+const cors = require('cors');
 const router = express.Router();
 const path = require('path');
 const fs = require('fs');
@@ -55,17 +56,17 @@ function buildFileTree(dirPath, rootDir, attachedFiles) {
   }
 
   const items = fs.readdirSync(dirPath, { withFileTypes: true })
-    .filter(item => {
-      if (item.name.startsWith('.')) return false;
-      if (excludedFilenames.has(item.name)) return false;
-      return true;
-    })
-    .sort((a, b) => {
-      // directories first
-      if (a.isDirectory() && !b.isDirectory()) return -1;
-      if (!a.isDirectory() && b.isDirectory()) return 1;
-      return a.name.localeCompare(b.name);
-    });
+      .filter(item => {
+        if (item.name.startsWith('.')) return false;
+        if (excludedFilenames.has(item.name)) return false;
+        return true;
+      })
+      .sort((a, b) => {
+        // directories first
+        if (a.isDirectory() && !b.isDirectory()) return -1;
+        if (!a.isDirectory() && b.isDirectory()) return 1;
+        return a.name.localeCompare(b.name);
+      });
 
   const children = [];
   for (const item of items) {
@@ -94,6 +95,14 @@ function buildFileTree(dirPath, rootDir, attachedFiles) {
     children
   };
 }
+
+// Enable CORS on this router to ensure valid response headers
+router.use(cors({
+  origin: '*',
+  methods: ['GET','POST','PUT','DELETE','OPTIONS','HEAD'],
+  allowedHeaders: ['Content-Type','Authorization','Accept','X-Requested-With','Origin']
+}));
+router.options('*', cors());
 
 /**
  * POST /createChat
