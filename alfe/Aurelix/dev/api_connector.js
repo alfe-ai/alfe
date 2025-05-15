@@ -3,6 +3,7 @@ const cors = require('cors');
 const router = express.Router();
 const path = require('path');
 const fs = require('fs');
+const { OpenAI } = require('openai'); // Added for AI integration
 
 // Import helpers for loading/saving the repo JSON
 const {
@@ -263,6 +264,83 @@ router.post("/:repoName/chat/:chatNumber/toggle_attached", (req, res) => {
         success: true,
         attachedFiles: chatData.attachedFiles,
     });
+});
+
+/**
+ * POST /submitNewChatInput
+ * Allows the user to submit a new user message for a given repo/chat
+ * and returns the AI's full response.
+ */
+router.post('/submitNewChatInput', async (req, res) => {
+  try {
+    const { repoName, chatNumber, userMessage } = req.body;
+
+    if (!repoName || !chatNumber || !userMessage) {
+      return res.status(400).json({ error: 'repoName, chatNumber, and userMessage are required.' });
+    }
+
+    // Load the chat data
+    const dataObj = loadRepoJson(repoName);
+    const chatData = dataObj[chatNumber];
+    if (!chatData) {
+      return res.status(404).json({ error: `Chat #${chatNumber} not found in repo '${repoName}'.` });
+    }
+
+    // Prepare the client
+    const openAiClient = new OpenAI({
+      apiKey: process.env.OPENAI_API_KEY || '',
+      dangerouslyAllowBrowser: true
+    });
+
+    // Use configured model or fallback
+    const chosenModel = chatData.aiModel || DEFAULT_AIMODEL;
+    // Build messages
+    const messages = [];
+
+    // If we have agent instructions, add them first
+    if (chatData.agentInstructions) {
+      messages.push({ role: 'system', content: chatData.agentInstructions });
+    }
+
+    // Then user message
+    messages.push({ role: 'user', content: userMessage });
+
+    console.log('[DEBUG] Sending to AI => model:', chosenModel, ', total messages:', messages.length);
+
+    // Call the AI
+    const response = await openAiClient.chat.completions.create({
+      model: chosenModel,
+      messages
+    });
+
+    const assistantReply = response.choices?.[0]?.message?.content || '';
+    console.log('[DEBUG] AI Reply length =>', assistantReply.length);
+
+    // Store in chat history
+    chatData.chatHistory = chatData.chatHistory || [];
+    chatData.chatHistory.push({
+      role: 'user',
+      content: userMessage,
+      timestamp: new Date().toISOString()
+    });
+    chatData.chatHistory.push({
+      role: 'assistant',
+      content: assistantReply,
+      timestamp: new Date().toISOString()
+    });
+
+    dataObj[chatNumber] = chatData;
+    saveRepoJson(repoName, dataObj);
+
+    return res.json({
+      success: true,
+      assistantReply,
+      fullAIResponse: response // Return entire response if needed
+    });
+  } catch (error) {
+    console.error('[ERROR] /submitNewChatInput =>', error);
+    return res.status(500).json({ error: 'An error occurred while processing the request.' });
+  }
 });
 
 module.exports = router;
