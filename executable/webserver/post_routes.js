@@ -387,40 +387,39 @@ function setupPostRoutes(deps) {
         res.redirect(`/${repoName}/chat/${chatNumber}`);
     });
 
-    /* ---------- toggle file attachment ---------- */
-    app.post("/:repoName/chat/:chatNumber/toggle_attached", (req, res) => {
-        const { repoName, chatNumber } = req.params;
-        const { filePath } = req.body;
-        if (!filePath) {
-            return res.status(400).json({ error: "No filePath provided." });
+    /* ---------- /:repoName/git_switch_branch ---------- */
+    app.post("/:repoName/git_switch_branch", (req, res) => {
+        const { repoName } = req.params;
+        const { createNew, branchName, newBranchName } = req.body || {};
+        const repoCfg = loadSingleRepoConfig(repoName);
+        if (!repoCfg) {
+            return res.status(400).json({ error: `Repo '${repoName}' not found.` });
         }
+        const { gitRepoLocalPath } = repoCfg;
 
-        const dataObj = loadRepoJson(repoName);
-        const chatData = dataObj[chatNumber];
-        if (!chatData) {
-            return res.status(404).json({
-                error: `Chat #${chatNumber} not found in repo '${repoName}'.`,
-            });
+        try {
+            if (createNew === true || createNew === "true") {
+                if (!newBranchName) {
+                    return res.status(400).json({ error: "No new branch name provided." });
+                }
+                execSync(`git checkout -b "${newBranchName}"`, { cwd: gitRepoLocalPath, stdio: "pipe" });
+                repoCfg.gitBranch = newBranchName;
+            } else {
+                if (!branchName) {
+                    return res.status(400).json({ error: "No branch name provided." });
+                }
+                execSync(`git checkout "${branchName}"`, { cwd: gitRepoLocalPath, stdio: "pipe" });
+                repoCfg.gitBranch = branchName;
+            }
+            const allConfig = loadRepoConfig() || {};
+            allConfig[repoName] = repoCfg;
+            saveRepoConfig(allConfig);
+
+            return res.json({ success: true });
+        } catch (err) {
+            console.error("[ERROR] gitSwitchBranch =>", err);
+            return res.status(500).json({ error: "Failed to switch branch." });
         }
-
-        chatData.attachedFiles = chatData.attachedFiles || [];
-        const index = chatData.attachedFiles.indexOf(filePath);
-
-        if (index >= 0) {
-            // Remove from attached
-            chatData.attachedFiles.splice(index, 1);
-        } else {
-            // Add to attached
-            chatData.attachedFiles.push(filePath);
-        }
-
-        dataObj[chatNumber] = chatData;
-        saveRepoJson(repoName, dataObj);
-
-        return res.json({
-            success: true,
-            attachedFiles: chatData.attachedFiles,
-        });
     });
 }
 
