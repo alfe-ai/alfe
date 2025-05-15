@@ -112,8 +112,21 @@ app.use((req, res, next) => {
     } else if (host.includes("devwhimsy") || host.includes("dev.whimsy")) {
         environment = "DEV";
     }
+
+    // if DEBUG=true from .env, set environment = "DEV"
+    if (process.env.DEBUG) {
+        environment = "DEV";
+    }
+
+
     res.locals.environment = environment;
     console.log(`[DEBUG] Host: ${host}, Environment: ${environment}`);
+    next();
+});
+
+// Pass debug mode to templates if DEBUG is set
+app.use((req, res, next) => {
+    res.locals.debugMode = !!process.env.DEBUG;
     next();
 });
 
@@ -441,13 +454,20 @@ setupGetRoutes({
  */
 const apiConnector = require("../alfe/Aurelix/dev/api_connector.js");
 
-// Host the routes from api_connector at /api
+// Host the routes from apiConnector at /api
 app.use("/api", apiConnector);
 
 /**
  * Start server
  */
-const port = process.env.SERVER_PORT || 3000;
+const debugPort = 3444;
+let port;
+if (process.env.DEBUG) {
+    console.log(`[DEBUG] environment variable set => Using debug port ${debugPort}`);
+    port = debugPort;
+} else {
+    port = process.env.SERVER_PORT || 3000;
+}
 http.createServer(app).listen(port, () => {
     console.log(`[DEBUG] Server running => http://localhost:${port}`);
 });

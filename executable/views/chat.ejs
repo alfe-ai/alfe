@@ -3,15 +3,21 @@
 <head>
     <meta charset="UTF-8">
     <title>Alfe: <%= gitRepoNameCLI %> | <%= aiModel %></title>
-    <!-- Default upright triangle favicon -->
     <link
       id="favicon"
       rel="icon"
       type="image/svg+xml"
-      href="data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 64 64'><polygon points='32,4 4,60 60,60' fill='black' /></svg>"
+      href="<%= debugMode
+        ? 'data:image/svg+xml;utf8,<svg xmlns=\'http://www.w3.org/2000/svg\' viewBox=\'0 0 64 64\'><polygon points=\'32,4 4,60 60,60\' fill=\'red\' /></svg>'
+        : 'data:image/svg+xml;utf8,<svg xmlns=\'http://www.w3.org/2000/svg\' viewBox=\'0 0 64 64\'><polygon points=\'32,4 4,60 60,60\' fill=\'black\' /></svg>'
+      %>"
+    >
+    <link
+      rel="alternate icon"
+      href="/favicon.ico"
+      type="image/x-icon"
     >
     <link rel="stylesheet" href="/CSS/chat.css">
-    <!-- D3.js library for rendering git graph -->
     <script src="https://d3js.org/d3.v5.min.js"></script>
 </head>
 <body>
@@ -20,9 +26,18 @@
         <h1>
             <a href="/" style="color: inherit; text-decoration: none;">
                 <% if (environment === 'unknown') { %>
-                    Alfe
+                    <% if (debugMode) { %>
+                        <span style="color:red;">Alfe</span>
+                    <% } else { %>
+                        Alfe
+                    <% } %>
                 <% } else { %>
-                    <span class="environment-indicator <%= environment %>"><%= environment %>:</span> Alfe
+                    <span class="environment-indicator <%= environment %>"><%= environment %>:</span>
+                    <% if (debugMode) { %>
+                        <span style="color:red;">Alfe</span>
+                    <% } else { %>
+                        Alfe
+                    <% } %>
                 <% } %>
             </a>
         </h1>
@@ -41,30 +56,61 @@
     <button id="gitUpdatePullButton">git update/pull</button>
     <div id="gitRevisionInfo" style="margin-top: 5px; font-size: 0.9em; color: #777;"></div>
 
-    <div id="gitAlwaysVisible"
-         style="margin-top: 1em; font-size: 0.9em; color: #66FF99;">
+    <div id="gitAlwaysVisible" style="margin-top: 1em; font-size: 0.9em; color: #66FF99;">
         <p><strong>Current Revision:</strong> <%= gitRevision %></p>
         <p><strong>Commit Timestamp:</strong> <%= gitTimestamp %></p>
         <p><strong>Branch:</strong> <%= gitBranchName %>
             <button id="switchBranchButton">Switch Branch</button>
         </p>
-        <!--<button id="gitLogButton">git log</button>-->
     </div>
 
     <div style="margin-top: 1em;">
         <form action="/<%= gitRepoNameCLI %>/chat/<%= chatNumber %>/toggle_push_after_commit" method="POST">
             <label>
-                <input type="checkbox" name="pushAfterCommit"
-                       <%= chatData.pushAfterCommit ? 'checked' : '' %>
-                       onchange="this.form.submit()">
+                <input type="checkbox" name="pushAfterCommit" <%= chatData.pushAfterCommit ? 'checked' : '' %> onchange="this.form.submit()">
                 Push after commit
             </label>
         </form>
     </div>
 
-    <div id="directory-tree">
-        <%- directoryTreeHTML %>
+    <!-- Form to add additional repos -->
+    <div style="margin: 1em 0;">
+        <h3>Add Another Repo</h3>
+        <% if (possibleReposToAdd.length === 0) { %>
+            <p style="font-size: 0.9em;">No more repos to attach.</p>
+        <% } else { %>
+            <form action="/<%= gitRepoNameCLI %>/chat/<%= chatNumber %>/add_other_repo" method="POST">
+                <select name="otherRepoName">
+                    <% possibleReposToAdd.forEach(function(r){ %>
+                        <option value="<%= r %>"><%= r %></option>
+                    <% }); %>
+                </select>
+                <button type="submit">Attach Repo</button>
+            </form>
+        <% } %>
     </div>
+
+    <div class="collapsible-section expanded">
+        <div class="collapsible-header">
+            <span class="triangle"></span>
+            <h3>Main Repo: <%= gitRepoNameCLI %></h3>
+        </div>
+        <div class="collapsible-content directory-tree" data-repo="<%= gitRepoNameCLI %>">
+            <%- directoryTreeHTML %>
+        </div>
+    </div>
+
+    <% additionalReposTrees.forEach(function(rep) { %>
+        <div class="collapsible-section collapsed">
+            <div class="collapsible-header">
+                <span class="triangle"></span>
+                <h3>Attached Repo: <%= rep.repoName %></h3>
+            </div>
+            <div class="collapsible-content directory-tree" data-repo="<%= rep.repoName %>">
+                <%- rep.directoryTreeHTML %>
+            </div>
+        </div>
+    <% }); %>
 </div>
 
 <div id="content">
@@ -82,6 +128,8 @@
     <form id="aiModelForm" action="/set_chat_model" method="POST">
         <input type="hidden" name="gitRepoNameCLI" value="<%= gitRepoNameCLI %>">
         <input type="hidden" name="chatNumber" value="<%= chatNumber %>">
+        <% include('./AIModelSelector.ejs') %>
+    </form>
         <div class="ai-selectors">
             <select name="aiProvider" id="aiProvider" onchange="this.form.submit()">
                 <option value="openai" <%= chatData.aiProvider.toLowerCase() === 'openai' ? 'selected' : '' %>>OpenAI</option>
@@ -170,29 +218,12 @@
         </div>
     </div>
 
-    <div class="collapsible-section">
-        <div class="collapsible-header">
-            <span class="triangle"></span>
-            <h3>Agent Instructions</h3>
-        </div>
-        <div class="collapsible-content">
-            <form action="/<%= gitRepoNameCLI %>/chat/<%= chatNumber %>/save_agent_instructions" method="POST">
-                <label for="agentInstructions">Enter Agent Instructions:</label><br/>
-                <textarea id="agentInstructions" name="agentInstructions" rows="10"><%= chatData.agentInstructions || '' %></textarea><br/>
-                <button type="submit" class="form-buttons">Save Instructions</button>
-            </form>
-        </div>
-    </div>
-
     <form id="chatForm"
           action="/<%= gitRepoNameCLI %>/chat/<%= chatNumber %>"
           method="POST"
           enctype="multipart/form-data">
         <label for="chatInput">Submit new chat input:</label><br/>
         <textarea id="chatInput" name="message" rows="5"></textarea><br/>
-
-<!--         <label for="imageFiles">Upload Images:</label><br/> -->
-<!--         <input type="file" id="imageFiles" name="imageFiles" multiple accept="image/*"><br/><br/> -->
 
         <p id="tokenCountDisplay">Tokens: 0</p>
 
@@ -202,7 +233,6 @@
 
         <div class="form-buttons">
             <button type="submit">Submit</button>
-<!--             <button type="submit" formaction="/<%= gitRepoNameCLI %>/chat/<%= chatNumber %>/queue">Queue</button> -->
         </div>
     </form>
     <br/>
@@ -250,10 +280,7 @@
     <div class="tabs">
         <div class="tab-buttons">
             <button class="tablink active" data-tab="gitTreeTab">Git Log</button>
-            <!--<button class="tablink" data-tab="gitLogTab">Git Log</button>-->
             <button class="tablink" data-tab="chatHistoryTab">Chat History</button>
-            <!--<button class="tablink" data-tab="queuedMessagesTab">Queued Messages</button>-->
-            <!--<button class="tablink" data-tab="previousChatsTab">Previous Chats</button>-->
             <button class="tablink" data-tab="outputFilesTab">Output Files</button>
             <button class="tablink" data-tab="summaryTab">Summaries</button>
         </div>
@@ -405,20 +432,13 @@
 
     <!-- Favicon animation logic -->
     <script>
-    const defaultFavicon = "data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 64 64'><polygon points='32,4 4,60 60,60' fill='black' /></svg>";
-    const rotatingFavicon = "data:image/svg+xml;utf8," +
-        "<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 64 64'>" +
-          "<polygon points='10,4 58,32 10,60' fill='black' />" +
-          "<path d='M32,4 A28,28 0 0 1 32,60' stroke='black' stroke-width='4' fill='none'>" +
-            "<animateTransform " +
-              "attributeName='transform' " +
-              "type='rotate' " +
-              "from='0 32 32' " +
-              "to='360 32 32' " +
-              "dur='1s' " +
-              "repeatCount='indefinite' />" +
-          "</path>" +
-        "</svg>";
+    const defaultFavicon = "<%= debugMode
+      ? 'data:image/svg+xml;utf8,<svg xmlns=\"http://www.w3.org/2000/svg\" viewBox=\"0 0 64 64\"><polygon points=\"32,4 4,60 60,60\" fill=\"red\" /></svg>'
+      : 'data:image/svg+xml;utf8,<svg xmlns=\"http://www.w3.org/2000/svg\" viewBox=\"0 0 64 64\"><polygon points=\"32,4 4,60 60,60\" fill=\"black\" /></svg>' %>";
+
+    const rotatingFavicon = "<%= debugMode
+      ? 'data:image/svg+xml;utf8,<svg xmlns=\"http://www.w3.org/2000/svg\" viewBox=\"0 0 64 64\"><polygon points=\"10,4 58,32 10,60\" fill=\"red\" /><path d=\"M32,4 A28,28 0 0 1 32,60\" stroke=\"black\" stroke-width=\"4\" fill=\"none\"><animateTransform attributeName=\"transform\" type=\"rotate\" from=\"0 32 32\" to=\"360 32 32\" dur=\"1s\" repeatCount=\"indefinite\" /></path></svg>'
+      : 'data:image/svg+xml;utf8,<svg xmlns=\"http://www.w3.org/2000/svg\" viewBox=\"0 0 64 64\"><polygon points=\"10,4 58,32 10,60\" fill=\"black\" /><path d=\"M32,4 A28,28 0 0 1 32,60\" stroke=\"black\" stroke-width=\"4\" fill=\"none\"><animateTransform attributeName=\"transform\" type=\"rotate\" from=\"0 32 32\" to=\"360 32 32\" dur=\"1s\" repeatCount=\"indefinite\" /></path></svg>' %>";
 
     window.addEventListener("load", () => {
       const fav = document.getElementById("favicon");

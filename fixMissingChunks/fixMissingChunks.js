@@ -9,7 +9,9 @@
  *     --orighash=abc123 --newhash=def456
  *
  * The script automatically retrieves the list of changed files between those two commits
- * and reconciles the missing chunks for each file using AI.
+ * and reconciles the missing chunks for each file using AI. After merging, the script writes
+ * the merged result back to disk in the specified directory, then performs a git add/commit/push
+ * cycle to store the updates.
  *
  * Optional arguments:
  *   --origfile  : Single string contents of old file (skip auto-git retrieval)
@@ -42,7 +44,7 @@ async function reconcileMissingChunksUsingAI(originalFileContent, newFileContent
   console.log("[DEBUG] reconcileMissingChunksUsingAI => Preparing request to AI API...");
   try {
     const apiKey = process.env.OPENAI_API_KEY || 'your_openai_api_key';
-    const model = 'gpt-4'; // or whichever model is preferred
+    const model = 'o3'; // updated to use "o3"
     const endpoint = 'https://api.openai.com/v1/chat/completions';
 
     const userPrompt = `
@@ -54,17 +56,17 @@ Please provide the full new file with any missing chunks from the original re-ad
 `;
 
     const response = await axios.post(
-        endpoint,
-        {
-          model,
-          messages: [{ role: "user", content: userPrompt }]
-        },
-        {
-          headers: {
-            'Content-Type': 'application/json',
-            'Authorization': `Bearer ${apiKey}`
-          }
+      endpoint,
+      {
+        model,
+        messages: [{ role: "user", content: userPrompt }]
+      },
+      {
+        headers: {
+          'Content-Type': 'application/json',
+          'Authorization': `Bearer ${apiKey}`
         }
+      }
     );
 
     const aiReply = response.data.choices[0].message.content || "";
@@ -185,6 +187,8 @@ async function main() {
     }
 
     console.log(`[DEBUG] Found ${changedFiles.length} changed file(s). Processing each...`);
+    const processedFiles = [];
+
     for (const filePath of changedFiles) {
       console.log(`\n[DEBUG] Processing file => ${filePath}`);
       const oldFileContent = getFileContentFromGit(argv.dir, argv.orighash, filePath);
@@ -197,13 +201,37 @@ async function main() {
 
       try {
         const mergedContent = await reconcileMissingChunksUsingAI(oldFileContent, newFileContent);
+
+        // Display in console
         console.log(`===== Merged File Output Start: ${filePath} =====`);
         console.log(mergedContent);
         console.log(`===== Merged File Output End: ${filePath} =====`);
+
+        // Write merged content back to disk
+        const targetPath = path.join(argv.dir, filePath);
+        fs.mkdirSync(path.dirname(targetPath), { recursive: true });
+        fs.writeFileSync(targetPath, mergedContent, 'utf-8');
+        processedFiles.push(filePath);
+
       } catch (err) {
         console.error("[ERROR] Merging failed:", err);
       }
     }
+
+    // If any files were processed, commit and push them
+    if (processedFiles.length > 0) {
+      try {
+        console.log(`[DEBUG] Attempting git commit & push for ${processedFiles.length} file(s) ...`);
+        execSync(`git add .`, { cwd: argv.dir, stdio: "inherit" });
+        const commitMsg = `Merged missing chunks for files: ${processedFiles.join(', ')}`;
+        execSync(`git commit -m "${commitMsg}"`, { cwd: argv.dir, stdio: "inherit" });
+        execSync(`git push`, { cwd: argv.dir, stdio: "inherit" });
+        console.log("[DEBUG] Git commit and push completed successfully.");
+      } catch (err) {
+        console.error("[ERROR] Git commit/push failed:", err);
+      }
+    }
+
     return;
   }
 
@@ -219,6 +247,31 @@ async function main() {
           console.log("===== Merged File Output Start =====");
           console.log(mergedContent);
           console.log("===== Merged File Output End =====");
+
+          // Write merged content back to disk if user provided a local path
+          if (argv.origfilepath && argv.newfilepath) {
+            try {
+              // We'll assume we apply to the "newfilepath"
+              fs.writeFileSync(argv.newfilepath, mergedContent, 'utf-8');
+              console.log("[DEBUG] Updated newfilepath with merged content.");
+
+              // Then we can commit/push if user set --dir
+              if (argv.dir) {
+                const relativePath = path.relative(argv.dir, argv.newfilepath);
+                try {
+                  execSync(`git add .`, { cwd: argv.dir, stdio: "inherit" });
+                  const commitMsg = `Merged missing chunks single-file: ${relativePath}`;
+                  execSync(`git commit -m "${commitMsg}"`, { cwd: argv.dir, stdio: "inherit" });
+                  execSync(`git push`, { cwd: argv.dir, stdio: "inherit" });
+                  console.log("[DEBUG] Git commit and push completed for single-file scenario.");
+                } catch (err) {
+                  console.error("[ERROR] Git commit/push failed:", err);
+                }
+              }
+            } catch (e) {
+              console.error("[ERROR] Failed to write updated content to newfilepath:", e);
+            }
+          }
         })
         .catch(err => {
           console.error("[ERROR] Merging failed:", err);
