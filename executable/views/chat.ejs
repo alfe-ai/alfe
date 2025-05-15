@@ -73,9 +73,44 @@
         </form>
     </div>
 
-    <div id="directory-tree">
-        <%- directoryTreeHTML %>
+    <!-- Form to add additional repos -->
+    <div style="margin: 1em 0;">
+        <h3>Add Another Repo</h3>
+        <% if (possibleReposToAdd.length === 0) { %>
+            <p style="font-size: 0.9em;">No more repos to attach.</p>
+        <% } else { %>
+            <form action="/<%= gitRepoNameCLI %>/chat/<%= chatNumber %>/add_other_repo" method="POST">
+                <select name="otherRepoName">
+                    <% possibleReposToAdd.forEach(function(r){ %>
+                        <option value="<%= r %>"><%= r %></option>
+                    <% }); %>
+                </select>
+                <button type="submit">Attach Repo</button>
+            </form>
+        <% } %>
     </div>
+
+    <div class="collapsible-section expanded">
+        <div class="collapsible-header">
+            <span class="triangle"></span>
+            <h3>Main Repo: <%= gitRepoNameCLI %></h3>
+        </div>
+        <div class="collapsible-content directory-tree" data-repo="<%= gitRepoNameCLI %>">
+            <%- directoryTreeHTML %>
+        </div>
+    </div>
+
+    <% additionalReposTrees.forEach(function(rep) { %>
+        <div class="collapsible-section collapsed">
+            <div class="collapsible-header">
+                <span class="triangle"></span>
+                <h3>Attached Repo: <%= rep.repoName %></h3>
+            </div>
+            <div class="collapsible-content directory-tree" data-repo="<%= rep.repoName %>">
+                <%- rep.directoryTreeHTML %>
+            </div>
+        </div>
+    <% }); %>
 </div>
 
 <div id="content">
@@ -180,20 +215,6 @@
                 </div>
             </div>
 
-        </div>
-    </div>
-
-    <div class="collapsible-section">
-        <div class="collapsible-header">
-            <span class="triangle"></span>
-            <h3>Agent Instructions</h3>
-        </div>
-        <div class="collapsible-content">
-            <form action="/<%= gitRepoNameCLI %>/chat/<%= chatNumber %>/save_agent_instructions" method="POST">
-                <label for="agentInstructions">Enter Agent Instructions:</label><br/>
-                <textarea id="agentInstructions" name="agentInstructions" rows="10"><%= chatData.agentInstructions || '' %></textarea><br/>
-                <button type="submit" class="form-buttons">Save Instructions</button>
-            </form>
         </div>
     </div>
 

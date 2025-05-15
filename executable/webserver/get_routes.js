@@ -116,6 +116,7 @@ function setupGetRoutes(deps) {
         /* defaults */
         chatData.aiModel = (chatData.aiModel || DEFAULT_AIMODEL).toLowerCase();
         chatData.aiProvider = chatData.aiProvider || "openai";
+        chatData.additionalRepos = chatData.additionalRepos || [];
 
         const {
             gitRepoLocalPath,
@@ -125,7 +126,32 @@ function setupGetRoutes(deps) {
         } = repoCfg;
 
         const attachedFiles = chatData.attachedFiles || [];
-        const directoryTreeHTML = generateFullDirectoryTree(gitRepoLocalPath, repoName, attachedFiles);
+        const directoryTreeHTML = generateFullDirectoryTree(gitRepoLocalPath, repoName, attachedFiles.filter(s => !s.includes('|')));
+
+        // Collect additional repos' directory trees
+        const additionalReposTrees = [];
+        const loadRepoConfiguration = loadRepoConfig() || {};
+        for (const otherRepoName of chatData.additionalRepos) {
+            const otherRepoCfg = loadSingleRepoConfig(otherRepoName);
+            if (otherRepoCfg) {
+                // parse out only this repo's attached files
+                const filesForThisRepo = attachedFiles
+                    .filter(f => f.startsWith(otherRepoName + "|"))
+                    .map(f => f.replace(otherRepoName + "|", ""));
+                const treeHTML = generateFullDirectoryTree(
+                    otherRepoCfg.gitRepoLocalPath,
+                    otherRepoName,
+                    filesForThisRepo
+                );
+                additionalReposTrees.push({ repoName: otherRepoName, directoryTreeHTML: treeHTML });
+            }
+        }
+
+        // For selection in the "Add other repo" form
+        const allRepoConfig = loadRepoConfig() || {};
+        const allRepoNames = Object.keys(allRepoConfig);
+        const possibleReposToAdd = allRepoNames.filter(name => name !== repoName && !chatData.additionalRepos.includes(name));
+
         const meta            = getGitMetaData(gitRepoLocalPath);
         const gitCommits      = getGitCommits(gitRepoLocalPath);
         const gitCommitGraph  = getGitCommitGraph(gitRepoLocalPath);
@@ -154,6 +180,8 @@ function setupGetRoutes(deps) {
             gitRepoNameCLI : repoName,
             chatNumber,
             directoryTreeHTML,
+            additionalReposTrees,
+            possibleReposToAdd,
             chatData,
             AIModels        : aiModelsForProvider,
             aiModel         : chatData.aiModel,

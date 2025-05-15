@@ -58,24 +58,8 @@ document.addEventListener('DOMContentLoaded', () => {
     });
 
     // ============ Directory Tree Expand/Collapse ============
-    const directoryTree = document.getElementById('directory-tree');
-    if (directoryTree) {
-        directoryTree.addEventListener('click', (evt) => {
-            console.log("[DEBUG] directoryTree click => target:", evt.target);
-            // If clicked a folder label => toggle collapsed/expanded
-            if (evt.target.classList.contains('tree-label')) {
-                console.log("[DEBUG] .tree-label clicked =>", evt.target.innerText);
-                const folderLI = evt.target.closest('.folder');
-                if (folderLI) {
-                    folderLI.classList.toggle('collapsed');
-                    folderLI.classList.toggle('expanded');
-                    console.log("[DEBUG] toggled folder =>", folderLI);
-                } else {
-                    console.warn("[DEBUG] no parent .folder found =>", evt.target);
-                }
-            }
-        });
-    }
+    // We'll handle multiple .directory-tree elements
+    const directoryTrees = document.querySelectorAll('.directory-tree');
 
     // ============ Attached Files ============
     const attachedFilesList = document.getElementById('attachedFilesList');
@@ -101,29 +85,29 @@ document.addEventListener('DOMContentLoaded', () => {
         }
     }
 
-    function addAttachedFile(filePath) {
-        if (!attachedFiles.includes(filePath)) {
-            attachedFiles.push(filePath);
+    function addAttachedFile(attachString) {
+        if (!attachedFiles.includes(attachString)) {
+            attachedFiles.push(attachString);
             updateAttachedFilesInput();
 
             // Update UI list
             if (attachedFilesList) {
                 const li = document.createElement('li');
-                li.textContent = filePath;
+                li.textContent = attachString;
                 const removeBtn = document.createElement('button');
                 removeBtn.type = 'button';
                 removeBtn.textContent = 'Remove';
                 removeBtn.classList.add('remove-file-button');
-                removeBtn.dataset.file = filePath;
+                removeBtn.dataset.file = attachString;
                 li.appendChild(removeBtn);
                 attachedFilesList.appendChild(li);
             }
-            console.log("[DEBUG] added attachedFile =>", filePath);
+            console.log("[DEBUG] added attachedFile =>", attachString);
         }
     }
 
-    function removeAttachedFile(filePath) {
-        const idx = attachedFiles.indexOf(filePath);
+    function removeAttachedFile(attachString) {
+        const idx = attachedFiles.indexOf(attachString);
         if (idx > -1) {
             attachedFiles.splice(idx, 1);
             updateAttachedFilesInput();
@@ -131,48 +115,76 @@ document.addEventListener('DOMContentLoaded', () => {
             if (attachedFilesList) {
                 const removeButtons = attachedFilesList.querySelectorAll('.remove-file-button');
                 removeButtons.forEach(btn => {
-                    if (btn.dataset.file === filePath) {
+                    if (btn.dataset.file === attachString) {
                         btn.parentElement.remove();
                     }
                 });
             }
-            console.log("[DEBUG] removed attachedFile =>", filePath);
+            console.log("[DEBUG] removed attachedFile =>", attachString);
         }
     }
 
     // Directory click => if it's a file-item, attach/unattach
-    if (directoryTree) {
-        directoryTree.addEventListener('click', (evt) => {
+    directoryTrees.forEach(tree => {
+        tree.addEventListener('click', evt => {
             if (evt.target.classList.contains('file-item')) {
                 const filePath = evt.target.dataset.path;
-                console.log("[DEBUG] file-item clicked =>", filePath);
-                if (attachedFiles.includes(filePath)) {
-                    removeAttachedFile(filePath);
+                const repoName = tree.dataset.repo;
+                console.log("[DEBUG] file-item clicked => repo:", repoName, " path:", filePath);
+                const attachString = `${repoName}|${filePath}`;
+
+                if (attachedFiles.includes(attachString)) {
+                    removeAttachedFile(attachString);
                     evt.target.classList.remove('selected-file');
                 } else {
-                    addAttachedFile(filePath);
+                    addAttachedFile(attachString);
                     evt.target.classList.add('selected-file');
+                }
+            } else if (evt.target.classList.contains('tree-label')) {
+                // toggling folder
+                const folderLI = evt.target.closest('.folder');
+                if (folderLI) {
+                    folderLI.classList.toggle('collapsed');
+                    folderLI.classList.toggle('expanded');
                 }
             }
         });
-    }
+    });
 
     // Remove button in attached files list
     if (attachedFilesList) {
         attachedFilesList.addEventListener('click', (evt) => {
             if (evt.target.classList.contains('remove-file-button')) {
-                const filePath = evt.target.dataset.file;
-                console.log("[DEBUG] remove-file-button =>", filePath);
-                removeAttachedFile(filePath);
+                const attachString = evt.target.dataset.file;
+                console.log("[DEBUG] remove-file-button =>", attachString);
+                removeAttachedFile(attachString);
 
-                // unselect in directory tree
-                if (directoryTree) {
-                    const fileItems = directoryTree.querySelectorAll('.file-item');
-                    fileItems.forEach(item => {
-                        if (item.dataset.path === filePath) {
-                            item.classList.remove('selected-file');
-                        }
-                    });
+                // unselect in directory trees
+                const splitted = attachString.split('|');
+                if (splitted.length === 2) {
+                    const rName = splitted[0];
+                    const rPath = splitted[1];
+                    const matchingTree = document.querySelector(`.directory-tree[data-repo="${rName}"]`);
+                    if (matchingTree) {
+                        const fileItems = matchingTree.querySelectorAll('.file-item');
+                        fileItems.forEach(item => {
+                            if (item.dataset.path === rPath) {
+                                item.classList.remove('selected-file');
+                            }
+                        });
+                    }
+                } else {
+                    // fallback for older format
+                    // remove from main repo
+                    const mainTree = document.querySelector(`.directory-tree[data-repo]`);
+                    if (mainTree) {
+                        const fileItems = mainTree.querySelectorAll('.file-item');
+                        fileItems.forEach(item => {
+                            if (item.dataset.path === attachString) {
+                                item.classList.remove('selected-file');
+                            }
+                        });
+                    }
                 }
             }
         });
@@ -180,11 +192,26 @@ document.addEventListener('DOMContentLoaded', () => {
 
     // Highlight attached files on load
     function highlightAttachedFiles() {
-        if (!directoryTree) return;
-        attachedFiles.forEach(filePath => {
-            const fileItem = directoryTree.querySelector(`.file-item[data-path="${filePath}"]`);
-            if (fileItem) {
-                fileItem.classList.add('selected-file');
+        attachedFiles.forEach(af => {
+            const splitted = af.split('|');
+            if (splitted.length === 2) {
+                const [rName, rPath] = splitted;
+                const matchingTree = document.querySelector(`.directory-tree[data-repo="${rName}"]`);
+                if (matchingTree) {
+                    const fileItem = matchingTree.querySelector(`.file-item[data-path="${rPath}"]`);
+                    if (fileItem) {
+                        fileItem.classList.add('selected-file');
+                    }
+                }
+            } else {
+                // older format => assume main repo
+                const mainTree = document.querySelector(`.directory-tree[data-repo]`);
+                if (mainTree) {
+                    const fileItem = mainTree.querySelector(`.file-item[data-path="${af}"]`);
+                    if (fileItem) {
+                        fileItem.classList.add('selected-file');
+                    }
+                }
             }
         });
     }

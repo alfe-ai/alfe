@@ -83,6 +83,26 @@ function setupPostRoutes(deps) {
         res.redirect(`/${gitRepoNameCLI}/chat/${chatNumber}`);
     });
 
+    /* ---------- Add Other Repo to Chat ---------- */
+    app.post("/:repoName/chat/:chatNumber/add_other_repo", (req, res) => {
+        const { repoName, chatNumber } = req.params;
+        const { otherRepoName } = req.body;
+        const dataObj = loadRepoJson(repoName);
+        const chatData = dataObj[chatNumber];
+        if (!chatData) {
+            return res.status(404).send("Chat not found.");
+        }
+
+        chatData.additionalRepos = chatData.additionalRepos || [];
+        if (otherRepoName && !chatData.additionalRepos.includes(otherRepoName)) {
+            chatData.additionalRepos.push(otherRepoName);
+        }
+
+        dataObj[chatNumber] = chatData;
+        saveRepoJson(repoName, dataObj);
+        res.redirect(`/${repoName}/chat/${chatNumber}`);
+    });
+
     /* ---------- /:repoName/chat/:chatNumber ---------- */
     app.post("/:repoName/chat/:chatNumber", upload.array("imageFiles"), async (req, res) => {
         try {
@@ -121,17 +141,31 @@ function setupPostRoutes(deps) {
             /* ----- git pull first ----- */
             await gitUpdatePull(gitRepoLocalPath);
 
-            /* ----- inject attached files’ contents into userMessage ----- */
+            /* ----- inject attached files’ contents (multiple repos) into userMessage ----- */
             const attachedFiles = chatData.attachedFiles || [];
-            for (const filePath of attachedFiles) {
-                const absoluteFilePath = path.join(gitRepoLocalPath, filePath);
-                if (fs.existsSync(absoluteFilePath)) {
-                    const fileContents = fs.readFileSync(absoluteFilePath, "utf-8");
-                    userMessage += `\n\n===== Start of file: ${filePath} =====\n`;
+            for (const fullPath of attachedFiles) {
+                let actualRepo = repoName;
+                let relativePath = fullPath;
+                const splitted = fullPath.split("|");
+                if (splitted.length === 2) {
+                    actualRepo = splitted[0];
+                    relativePath = splitted[1];
+                }
+
+                const rConfig = loadSingleRepoConfig(actualRepo);
+                if (!rConfig) {
+                    userMessage += `\n\n[Repo not found: ${actualRepo} for file: ${relativePath}]\n`;
+                    continue;
+                }
+
+                const absFilePath = path.join(rConfig.gitRepoLocalPath, relativePath);
+                if (fs.existsSync(absFilePath)) {
+                    const fileContents = fs.readFileSync(absFilePath, "utf-8");
+                    userMessage += `\n\n===== Start of file: ${relativePath} =====\n`;
                     userMessage += fileContents;
-                    userMessage += `\n===== End of file: ${filePath} =====\n`;
+                    userMessage += `\n===== End of file: ${relativePath} =====\n`;
                 } else {
-                    userMessage += `\n\n[File not found: ${filePath}]\n`;
+                    userMessage += `\n\n[File not found: ${relativePath} in repo ${actualRepo}]\n`;
                 }
             }
 
@@ -170,7 +204,20 @@ function setupPostRoutes(deps) {
 
             /* ----- write files to disk ----- */
             for (const file of extractedFiles) {
-                const outPath = path.join(gitRepoLocalPath, file.filename);
+                // Default to main repo if not recognized in name
+                let actualRepo = repoName;
+                let relativePath = file.filename;
+                const splitted = file.filename.split("|");
+                if (splitted.length === 2) {
+                    actualRepo = splitted[0];
+                    relativePath = splitted[1];
+                }
+                const rConfig = loadSingleRepoConfig(actualRepo);
+                if (!rConfig) {
+                    console.warn("[WARN] Attempted to write file to unknown repo:", actualRepo);
+                    continue;
+                }
+                const outPath = path.join(rConfig.gitRepoLocalPath, relativePath);
                 fs.mkdirSync(path.dirname(outPath), { recursive: true });
                 fs.writeFileSync(outPath, file.content, "utf-8");
             }
