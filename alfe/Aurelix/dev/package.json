@@ -1,0 +1,14 @@
+{
+  "name": "alfe-aurelix-dev",
+  "version": "1.0.0",
+  "description": "Local development environment for Alfe Aurelix Dev",
+  "main": "api_connector.js",
+  "scripts": {
+    "start": "node ../../executable/server_webserver.js"
+  },
+  "author": "Alfe AI",
+  "license": "MIT",
+  "dependencies": {
+    "cors": "^2.8.5"
+  }
+}
