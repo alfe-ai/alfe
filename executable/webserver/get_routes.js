@@ -270,6 +270,13 @@ function setupGetRoutes(deps) {
         }
         return res.json({ branches: branchData });
     });
+
+    /* ---------- New fixMissingChunks page ---------- */
+    app.get("/:repoName/fixMissingChunks", (req, res) => {
+        res.render("fixMissingChunks", {
+            repoName: req.params.repoName
+        });
+    });
 }
 
 module.exports = { setupGetRoutes };
