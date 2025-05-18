@@ -129,7 +129,6 @@
         <input type="hidden" name="gitRepoNameCLI" value="<%= gitRepoNameCLI %>">
         <input type="hidden" name="chatNumber" value="<%= chatNumber %>">
         <% include('./AIModelSelector.ejs') %>
-    </form>
         <div class="ai-selectors">
             <select name="aiProvider" id="aiProvider" onchange="this.form.submit()">
                 <option value="openai" <%= chatData.aiProvider.toLowerCase() === 'openai' ? 'selected' : '' %>>OpenAI</option>
