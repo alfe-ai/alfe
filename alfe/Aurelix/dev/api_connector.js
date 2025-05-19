@@ -55,17 +55,17 @@ function buildFileTree(dirPath, rootDir, attachedFiles) {
   }
 
   const items = fs.readdirSync(dirPath, { withFileTypes: true })
-    .filter(item => {
-      if (item.name.startsWith('.')) return false;
-      if (excludedFilenames.has(item.name)) return false;
-      return true;
-    })
-    .sort((a, b) => {
-      // directories first
-      if (a.isDirectory() && !b.isDirectory()) return -1;
-      if (!a.isDirectory() && b.isDirectory()) return 1;
-      return a.name.localeCompare(b.name);
-    });
+      .filter(item => {
+        if (item.name.startsWith('.')) return false;
+        if (excludedFilenames.has(item.name)) return false;
+        return true;
+      })
+      .sort((a, b) => {
+        // directories first
+        if (a.isDirectory() && !b.isDirectory()) return -1;
+        if (!a.isDirectory() && b.isDirectory()) return 1;
+        return a.name.localeCompare(b.name);
+      });
 
   const children = [];
   for (const item of items) {
@@ -200,6 +200,63 @@ router.get('/listFileTree/:repoName/:chatNumber', (req, res) => {
   // Build the directory tree
   const tree = buildFileTree(gitRepoLocalPath, gitRepoLocalPath, attachedFiles);
   return res.json({ success: true, tree });
+});
+
+/**
+ * POST /changeBranchOfChat/:repoName/:chatNumber
+ * Switches the repository branch for the specified chat
+ * and stores the new branch name in chat data as chatData.gitBranch.
+ */
+router.post('/changeBranchOfChat/:repoName/:chatNumber', (req, res) => {
+  const { repoName, chatNumber } = req.params;
+  const { createNew, branchName, newBranchName } = req.body || {};
+
+  const repoCfg = loadSingleRepoConfig(repoName);
+  if (!repoCfg) {
+    return res.status(400).json({ error: `Repo '${repoName}' not found.` });
+  }
+
+  const dataObj = loadRepoJson(repoName);
+  const chatData = dataObj[chatNumber];
+  if (!chatData) {
+    return res.status(404).json({ error: `Chat #${chatNumber} not found in repo '${repoName}'.` });
+  }
+
+  const { gitRepoLocalPath } = repoCfg;
+  const { execSync } = require('child_process');
+
+  try {
+    if (createNew === true || createNew === 'true') {
+      if (!newBranchName) {
+        return res.status(400).json({ error: "No new branch name provided." });
+      }
+      execSync(`git checkout -b "${newBranchName}"`, { cwd: gitRepoLocalPath, stdio: "pipe" });
+      repoCfg.gitBranch = newBranchName;
+      chatData.gitBranch = newBranchName;
+    } else {
+      if (!branchName) {
+        return res.status(400).json({ error: "No branch name provided." });
+      }
+      execSync(`git checkout "${branchName}"`, { cwd: gitRepoLocalPath, stdio: "pipe" });
+      repoCfg.gitBranch = branchName;
+      chatData.gitBranch = branchName;
+    }
+
+    // Save updated repo config
+    const { loadRepoConfig, saveRepoConfig } = require('../../../server_defs');
+    const allConfig = loadRepoConfig() || {};
+    allConfig[repoName] = repoCfg;
+    saveRepoConfig(allConfig);
+
+    // Save updated chat data
+    dataObj[chatNumber] = chatData;
+    saveRepoJson(repoName, dataObj);
+
+    return res.json({ success: true, newBranch: chatData.gitBranch });
+  } catch (err) {
+    console.error("[ERROR] changeBranchOfChat =>", err);
+    return res.status(500).json({ error: "Failed to switch branch." });
+  }
 });
 
 module.exports = router;
