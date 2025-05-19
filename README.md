@@ -1,4 +1,4 @@
-# Alfe AI  
+# Alfe AI: Sterling  
 
 ## [Alfe AI](https://alfe.sh) Version 1: Sterling  
 <!-- #### beta-0.43.0 -->
