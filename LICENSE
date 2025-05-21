@@ -1,16 +1,27 @@
-MIT License
+**Alfe AI License** Version: 1.01
 
-Copyright (c) 2022-2025 Lochner Technology and Commerce, LLC, dba Alfe AI.
-
-Permission is hereby granted, free of charge, to any person obtaining a copy
-of this software and associated documentation files (the "Software"), to deal
-in the Software without restriction, including without limitation the rights
-to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
-copies of the Software, and to permit persons to whom the Software is
-furnished to do so, subject to the following conditions:
+Copyright (c) 2022-2025 Nicholas Lochner
 
 The above copyright notice and this permission notice shall be included in all
 copies or substantial portions of the Software.
+
+---
+
+**1. Permissions:**
+
+- **Free Internal Use:** You are granted the right to use, copy, and modify the software for personal use and internal business purposes at no cost.
+- **Modification Rights:** You may modify the software to suit your needs.
+- **Backup Copies:** You may make backup copies of the software.
+- **Redistribution/Distribution:** You may redistribute, fork, and merge this software and modified copies of this software as long as the distributed software adheres to this license agreement.
+- **Commercial Use as a Tool:** You may use this software in the following ways which contribute to generating revenue: internal business/personal use.
+
+**2. Restrictions:**
+
+- **No Resale or Commercial Distribution:** You may not sell, distribute, or offer the software as part of a commercial product or service without obtaining explicit written permission from the copyright holder.
+- **No Code Integration in Commercial Products:** You may not directly use this software or this software's code in your commercial product without explicit written permission from the copyright holder. You are allowed to use this software for other business purposes. (You are allowed to use the software/platform internally, but not allowed to integrate the code with your product.)
+- **No Sublicensing:** You may not sublicense the software unless agreed upon in a separate written agreement.
+
+**3. Disclaimer of Warranty:**
 
 THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
 IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
@@ -19,3 +30,13 @@ AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
 LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
 OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 SOFTWARE.
+
+**4. Limitation of Liability:**
+
+In no event shall the authors or copyright holders be liable for any incidental, special, indirect, or consequential damages arising out of the use of or inability to use the software, even if advised of the possibility of such damage.
+
+**5. Entire Agreement:**
+
+This license constitutes the entire agreement between the parties with respect to the use of the software and supersedes all prior or contemporaneous understandings, whether oral or written. This license may not be amended or modified except in writing signed by the copyright holders.
+
+---
