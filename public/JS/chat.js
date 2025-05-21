@@ -358,11 +358,11 @@ document.addEventListener('DOMContentLoaded', () => {
             const startTime = performance.now();
             if (executionTimeText) {
                 executionTimeText.style.display = 'block';
-                executionTimeText.textContent = `Total execution time: 0.00s`;
+                executionTimeText.textContent = `Total run time: 0.00s`;
                 timerInterval = setInterval(() => {
                     const now = performance.now();
                     const elapsed = ((now - startTime) / 1000).toFixed(2);
-                    executionTimeText.textContent = `Total execution time: ${elapsed}s`;
+                    executionTimeText.textContent = `Total run time: ${elapsed}s`;
                 }, 100);
             }
 
@@ -464,7 +464,7 @@ document.addEventListener('DOMContentLoaded', () => {
                     const endTime = performance.now();
                     const execSeconds = ((endTime - startTime) / 1000).toFixed(2);
                     if (executionTimeText) {
-                        executionTimeText.textContent = `Total execution time: ${execSeconds}s`;
+                        executionTimeText.textContent = `Total run time: ${execSeconds}s`;
                     }
 
                     // Re-enable
@@ -494,7 +494,7 @@ document.addEventListener('DOMContentLoaded', () => {
                     const endTime = performance.now();
                     const execSeconds = ((endTime - startTime) / 1000).toFixed(2);
                     if (executionTimeText) {
-                        executionTimeText.textContent = `Total execution time: ${execSeconds}s`;
+                        executionTimeText.textContent = `Total run time: ${execSeconds}s`;
                     }
 
                     // Re-enable
