@@ -52,7 +52,7 @@ function saveGlobalInstructions(newInstructions) {
 function convertGitUrlToHttps(url) {
     if (!url) return "#";
 
-    // SSH form: git@github.com:user/repo(.git)
+    // SSH form: git@github.com:...
     if (url.startsWith("git@github.com:")) {
         let repo = url.slice("git@github.com:".length);
         if (repo.endsWith(".git")) repo = repo.slice(0, -4);
@@ -113,7 +113,6 @@ app.use((req, res, next) => {
         environment = "DEV";
     }
 
-    // if DEBUG=true from .env, set environment = "DEV"
     if (process.env.DEBUG) {
         environment = "DEV";
     }
@@ -211,10 +210,9 @@ const { analyzeProject } = require("./directory_analyzer");
 const EXCLUDED_FILENAMES = new Set();
 
 /**
- * Helper function to gather Git metadata for the repository.
+ * Helper function to gather Git metadata, now accepts a repoPath parameter.
  */
-function getGitMetaData() {
-    const repoPath = appCWD; // TODO: FIX TO GET THIS .
+function getGitMetaData(repoPath) {
     let rev = "";
     let dateStr = "";
     let branchName = "";
@@ -233,10 +231,8 @@ function getGitMetaData() {
             .toString()
             .trim();
 
-        // Attempt to find a tag by going from HEAD backwards
         let foundTag = false;
         let i = 0;
-
         while (!foundTag) {
             try {
                 const commitRef = i === 0 ? "HEAD" : `HEAD~${i}`;
@@ -344,7 +340,6 @@ function generateDirectoryTree(dirPath, rootDir, repoName, attachedFiles) {
         return true;
     });
 
-    // directories first, then files
     items.sort((a, b) => {
         if (a.isDirectory() && !b.isDirectory()) return -1;
         if (!a.isDirectory() && b.isDirectory()) return 1;
