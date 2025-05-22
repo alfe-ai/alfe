@@ -199,6 +199,7 @@ function setupGetRoutes(deps) {
             directoryAnalysisText,
             systemInformationText : getSystemInformation(),
             environment     : res.locals.environment,
+            appCWD          : process.cwd(),
         });
     });
 
