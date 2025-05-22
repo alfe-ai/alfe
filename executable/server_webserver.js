@@ -213,7 +213,8 @@ const EXCLUDED_FILENAMES = new Set();
 /**
  * Helper function to gather Git metadata for the repository.
  */
-function getGitMetaData(repoPath) {
+function getGitMetaData() {
+    const repoPath = appCWD; // TODO: FIX TO GET THIS .
     let rev = "";
     let dateStr = "";
     let branchName = "";
