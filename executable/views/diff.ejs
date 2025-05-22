@@ -1,0 +1,67 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Diff: <%= gitRepoNameCLI %></title>
+    <link
+      id="favicon"
+      rel="icon"
+      type="image/svg+xml"
+      href="<%= debugMode
+        ? 'data:image/svg+xml;utf8,<svg xmlns=\'http://www.w3.org/2000/svg\' viewBox=\'0 0 64 64\'><polygon points=\'32,4 4,60 60,60\' fill=\'red\' /></svg>'
+        : 'data:image/svg+xml;utf8,<svg xmlns=\'http://www.w3.org/2000/svg\' viewBox=\'0 0 64 64\'><polygon points=\'32,4 4,60 60,60\' fill=\'black\' /></svg>'
+      %>"
+    >
+    <link rel="alternate icon" href="/favicon.ico" type="image/x-icon">
+    <link rel="stylesheet" href="/CSS/chat.css">
+</head>
+<body>
+<div id="sidebar">
+    <center>
+        <h1>
+            <a href="/" style="color: inherit; text-decoration: none;">
+                <% if (environment === 'unknown') { %>
+                    <% if (debugMode) { %>
+                        <span style="color:red;">Alfe</span>
+                    <% } else { %>
+                        Alfe
+                    <% } %>
+                <% } else { %>
+                    <span class="environment-indicator <%= environment %>"><%= environment %>:</span>
+                    <% if (debugMode) { %>
+                        <span style="color:red;">Alfe</span>
+                    <% } else { %>
+                        Alfe
+                    <% } %>
+                <% } %>
+            </a>
+        </h1>
+        <p class="breadcrumb">
+            <a href="/<%= gitRepoNameCLI %>/chats">Chats</a>
+        </p>
+        <p class="breadcrumb">
+            <a href="/<%= gitRepoNameCLI %>/diff">Diff</a>
+        </p>
+    </center>
+</div>
+
+<div id="content">
+    <h2>Compare Revisions for <%= gitRepoNameCLI %></h2>
+
+    <form action="/<%= gitRepoNameCLI %>/diff" method="get">
+        <label for="baseRev">Base Revision:</label><br/>
+        <input type="text" id="baseRev" name="baseRev" value="<%= baseRev %>" required><br/><br/>
+        <label for="compRev">Comparison Revision:</label><br/>
+        <input type="text" id="compRev" name="compRev" value="<%= compRev %>" required><br/><br/>
+        <button type="submit">Compare</button>
+    </form>
+
+    <% if (diffOutput) { %>
+        <h3>Git Diff Output</h3>
+        <textarea rows="30" style="width: 100%;" readonly><%= diffOutput %></textarea>
+    <% } else { %>
+        <p style="margin-top: 15px;">Enter revisions to view a diff.</p>
+    <% } %>
+</div>
+</body>
+</html>

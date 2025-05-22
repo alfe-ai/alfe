@@ -277,6 +277,38 @@ function setupGetRoutes(deps) {
             repoName: req.params.repoName
         });
     });
+
+    /* ---------- New diff page ---------- */
+    app.get("/:repoName/diff", (req, res) => {
+        const { repoName } = req.params;
+        const { baseRev, compRev } = req.query;
+        let diffOutput = "";
+        const repoCfg = loadSingleRepoConfig(repoName);
+        if (!repoCfg) {
+            return res.status(400).send(`Repository '${repoName}' not found.`);
+        }
+        const { gitRepoLocalPath } = repoCfg;
+
+        if (baseRev && compRev) {
+            try {
+                diffOutput = execSync(`git diff ${baseRev} ${compRev}`, {
+                    cwd: gitRepoLocalPath,
+                    maxBuffer: 1024 * 1024 * 10,
+                }).toString();
+            } catch (err) {
+                diffOutput = `[ERROR] Failed to run git diff ${baseRev} ${compRev}\n\n${err}`;
+            }
+        }
+
+        res.render("diff", {
+            gitRepoNameCLI: repoName,
+            baseRev: baseRev || "",
+            compRev: compRev || "",
+            diffOutput,
+            debugMode: !!process.env.DEBUG,
+            environment: res.locals.environment
+        });
+    });
 }
 
 module.exports = { setupGetRoutes };
