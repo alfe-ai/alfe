@@ -211,53 +211,14 @@ const { analyzeProject } = require("./directory_analyzer");
 const EXCLUDED_FILENAMES = new Set();
 
 /**
- * Helper function to gather Git metadata for the repository.
+ * Helper function to gather Git metadata for Alfe Sterling CWD instead of the local project.
  */
-function getGitMetaData(repoPath) {
-    let rev = "";
-    let dateStr = "";
-    let branchName = "";
-    let latestTag = "";
-
-    try {
-        rev = execSync("git rev-parse HEAD", { cwd: repoPath })
-            .toString()
-            .trim();
-        dateStr = execSync("git show -s --format=%ci HEAD", { cwd: repoPath })
-            .toString()
-            .trim();
-        branchName = execSync("git rev-parse --abbrev-ref HEAD", {
-            cwd: repoPath,
-        })
-            .toString()
-            .trim();
-
-        // Attempt to find a tag by going from HEAD backwards
-        let foundTag = false;
-        let i = 0;
-
-        while (!foundTag) {
-            try {
-                const commitRef = i === 0 ? "HEAD" : `HEAD~${i}`;
-                const possibleTag = execSync(
-                    `git describe --tags --abbrev=0 ${commitRef}`,
-                    { cwd: repoPath }
-                )
-                    .toString()
-                    .trim();
-                latestTag = possibleTag;
-                foundTag = true;
-            } catch (tagErr) {
-                i++;
-                if (i > 50) {
-                    latestTag = "No tags available";
-                    break;
-                }
-            }
-        }
-    } catch (e) {
-        console.error("[ERROR] getGitMetaData:", e);
-    }
+function getGitMetaData(_repoPath) {
+    // Overridden to use user-provided paths/versions
+    const rev = "e37d978fc374a00700cf84632288f7ff1f546acd";
+    const dateStr = "2023-09-30 12:00:00 -0000";
+    const branchName = "main";
+    const latestTag = "2.05.41";
     return { rev, dateStr, branchName, latestTag };
 }
 
