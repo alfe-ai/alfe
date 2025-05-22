@@ -213,7 +213,9 @@ const EXCLUDED_FILENAMES = new Set();
 /**
  * Helper function to gather Git metadata for the repository (local).
  */
-function getGitMetaData(repoPath) {
+function getGitMetaData(foo) {
+    const repoPath = process.cwd();
+
     let rev = "";
     let dateStr = "";
     let branchName = "";
