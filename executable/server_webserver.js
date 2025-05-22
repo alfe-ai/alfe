@@ -118,7 +118,6 @@ app.use((req, res, next) => {
         environment = "DEV";
     }
 
-
     res.locals.environment = environment;
     console.log(`[DEBUG] Host: ${host}, Environment: ${environment}`);
     next();
@@ -215,9 +214,11 @@ const EXCLUDED_FILENAMES = new Set();
  * Helper function to gather Git metadata for the repository.
  */
 function getGitMetaData(repoPath) {
-    let rev = "",
-        dateStr = "",
-        branchName = "";
+    let rev = "";
+    let dateStr = "";
+    let branchName = "";
+    let latestTag = "";
+
     try {
         rev = execSync("git rev-parse HEAD", { cwd: repoPath })
             .toString()
@@ -230,10 +231,34 @@ function getGitMetaData(repoPath) {
         })
             .toString()
             .trim();
+
+        // Attempt to find a tag by going from HEAD backwards
+        let foundTag = false;
+        let i = 0;
+
+        while (!foundTag) {
+            try {
+                const commitRef = i === 0 ? "HEAD" : `HEAD~${i}`;
+                const possibleTag = execSync(
+                    `git describe --tags --abbrev=0 ${commitRef}`,
+                    { cwd: repoPath }
+                )
+                    .toString()
+                    .trim();
+                latestTag = possibleTag;
+                foundTag = true;
+            } catch (tagErr) {
+                i++;
+                if (i > 50) {
+                    latestTag = "No tags available";
+                    break;
+                }
+            }
+        }
     } catch (e) {
         console.error("[ERROR] getGitMetaData:", e);
     }
-    return { rev, dateStr, branchName };
+    return { rev, dateStr, branchName, latestTag };
 }
 
 /**

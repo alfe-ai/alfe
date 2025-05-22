@@ -2,7 +2,9 @@
 <html lang="en">
 <head>
     <meta charset="UTF-8">
-    <title>Alfe: <%= gitRepoNameCLI %> | <%= aiModel %></title>
+    <title>Alfe: <%= gitRepoNameCLI %> <% if (debugMode) { %>
+                                                               DEV
+                                                           <% } %> | <%= aiModel %></title>
     <link
       id="favicon"
       rel="icon"
@@ -116,6 +118,13 @@
             </div>
         </div>
     <% }); %>
+
+    <!-- Version info at bottom left -->
+    <div style="margin-top: 1em; font-size: 0.9em; color: #ccc;">
+        <p><strong>Alfe Sterling CWD:</strong> <%= appCWD %></p>
+        <p><strong>Alfe Revision:</strong> <%= gitRevision %></p>
+        <p><strong>Latest Git Tag:</strong> <%= gitTag %></p>
+    </div>
 </div>
 
 <div id="content">
