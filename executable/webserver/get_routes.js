@@ -194,6 +194,7 @@ function setupGetRoutes(deps) {
             gitRevision     : meta.rev,
             gitTimestamp    : meta.dateStr,
             gitBranchName   : meta.branchName,
+            gitTag          : meta.latestTag,
             gitCommits,
             gitCommitGraph,
             directoryAnalysisText,

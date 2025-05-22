@@ -217,7 +217,8 @@ const EXCLUDED_FILENAMES = new Set();
 function getGitMetaData(repoPath) {
     let rev = "",
         dateStr = "",
-        branchName = "";
+        branchName = "",
+        latestTag = "";
     try {
         rev = execSync("git rev-parse HEAD", { cwd: repoPath })
             .toString()
@@ -230,10 +231,19 @@ function getGitMetaData(repoPath) {
         })
             .toString()
             .trim();
+        // Retrieve latest tag:
+        try {
+            latestTag = execSync("git describe --tags --abbrev=0", { cwd: repoPath })
+                .toString()
+                .trim();
+        } catch (tagErr) {
+            console.log("[DEBUG] No tags found or error retrieving tags.");
+            latestTag = "No tags available";
+        }
     } catch (e) {
         console.error("[ERROR] getGitMetaData:", e);
     }
-    return { rev, dateStr, branchName };
+    return { rev, dateStr, branchName, latestTag };
 }
 
 /**
