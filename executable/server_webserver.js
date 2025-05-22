@@ -211,10 +211,9 @@ const { analyzeProject } = require("./directory_analyzer");
 const EXCLUDED_FILENAMES = new Set();
 
 /**
- * Helper function to gather Git metadata for the repository.
+ * Helper function to gather Git metadata for the repository (local).
  */
-function getGitMetaData() {
-    const repoPath = process.cwd();
+function getGitMetaData(repoPath) {
     let rev = "";
     let dateStr = "";
     let branchName = "";
@@ -233,28 +232,15 @@ function getGitMetaData() {
             .toString()
             .trim();
 
-        // Attempt to find a tag by going from HEAD backwards
-        let foundTag = false;
-        let i = 0;
-
-        while (!foundTag) {
-            try {
-                const commitRef = i === 0 ? "HEAD" : `HEAD~${i}`;
-                const possibleTag = execSync(
-                    `git describe --tags --abbrev=0 ${commitRef}`,
-                    { cwd: repoPath }
-                )
-                    .toString()
-                    .trim();
-                latestTag = possibleTag;
-                foundTag = true;
-            } catch (tagErr) {
-                i++;
-                if (i > 50) {
-                    latestTag = "No tags available";
-                    break;
-                }
-            }
+        // Attempt to find a tag at HEAD
+        try {
+            latestTag = execSync("git describe --tags --abbrev=0 HEAD", {
+                cwd: repoPath,
+            })
+                .toString()
+                .trim();
+        } catch (tagErr) {
+            latestTag = "No tags available";
         }
     } catch (e) {
         console.error("[ERROR] getGitMetaData:", e);
