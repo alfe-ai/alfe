@@ -68,12 +68,12 @@ function saveRepoConfig(updatedConfig) {
 }
 
 /**
- * Retrieves git metadata for a specific file.
+ * Retrieves git metadata for a specific file using the current working directory.
  * @param {string} filePath - The absolute path to the file.
- * @param {string} repoPath - The path to the git repository.
  * @returns {Object} An object containing the revision and date string.
  */
-function getGitFileMetaData(filePath, repoPath) {
+function getGitFileMetaData(filePath) {
+    const repoPath = process.cwd();
     let rev = "";
     let dateStr = "";
     try {
@@ -130,4 +130,3 @@ module.exports = {
     loadRepoJson,
     saveRepoJson
 };
-
