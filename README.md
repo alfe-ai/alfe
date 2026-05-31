@@ -3,6 +3,7 @@
 ## [Alfe AI](https://alfe.sh) Version 1: Sterling  
 <!-- #### beta-0.43.0 -->
 
+This is an old version.  
 For the latest version 4, go to https://github.com/alfmir-ai/alfmir.ai
 
 ### FOSS AI Software Development Platform
